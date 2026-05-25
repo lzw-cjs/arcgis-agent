@@ -1,4 +1,4 @@
-"""arcpy adapter layer.
+"""Adapter layer: interfaces and implementations."""
+from arcgis_agent.adapters.base import IGeoProcessor, IMapDocument, IDataAccessor
 
-Phase 1 will implement IGeoProcessor, IMapDocument, IDataAccessor interfaces.
-"""
+__all__ = ["IGeoProcessor", "IMapDocument", "IDataAccessor"]
