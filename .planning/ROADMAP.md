@@ -185,10 +185,10 @@
 
 **Plans:** 4 plans
 
-- [ ] 03-01-PLAN.md — Adapter 层扩展 (IGeoProcessor + ArcPyGeoProcessor + MockGeoProcessor) + 共享 data_group
-- [ ] 03-02-PLAN.md — GeoprocessingService (GEO-01~09) + AnalysisService (GEO-10)
-- [ ] 03-03-PLAN.md — CLI 命令注册 (geoprocessing.py + analysis.py) + pyproject.toml 入口点
-- [ ] 03-04-PLAN.md — 全模块单元测试 (test_geoprocessing.py + test_analysis.py)
+- [x] 03-01-PLAN.md — Adapter 层扩展 (IGeoProcessor + ArcPyGeoProcessor + MockGeoProcessor) + 共享 data_group
+- [x] 03-02-PLAN.md — GeoprocessingService (GEO-01~09) + AnalysisService (GEO-10)
+- [x] 03-03-PLAN.md — CLI 命令注册 (geoprocessing.py + analysis.py) + pyproject.toml 入口点
+- [x] 03-04-PLAN.md — 全模块单元测试 (test_geoprocessing.py + test_analysis.py)
 
 ---
 
