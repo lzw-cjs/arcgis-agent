@@ -1,4 +1,1 @@
-"""Business logic services layer.
-
-Phase 2+ will implement service classes here.
-"""
+"""Service layer: business logic with adapter injection."""
