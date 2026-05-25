@@ -3,6 +3,9 @@ import click
 
 from arcgis_agent.models.result import Result
 
+# Shared Click "data" subgroup -- set by register(), imported by geoprocessing.py
+data_group: click.Group | None = None
+
 
 def _make_service():
     """Create DataDiscoveryService, returning (svc, None) or (None, error_json)."""
@@ -22,11 +25,14 @@ def _run(fn):
 
 def register(cli_group: click.Group) -> None:
     """Register data commands with CLI."""
+    global data_group
 
     @cli_group.group("data")
-    def data_group():
-        """Discover and inspect workspace data."""
+    def dg():
+        """Discover, inspect, and process workspace data."""
         pass
+
+    data_group = dg
 
     @data_group.command("list")
     @click.option("--workspace", "-w", default=None,

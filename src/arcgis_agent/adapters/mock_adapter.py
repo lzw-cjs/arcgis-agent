@@ -12,8 +12,10 @@ class MockGeoProcessor(IGeoProcessor):
         self.calls: list[tuple] = []
 
     def buffer(self, input_fc: str, output_fc: str,
-               distance: float, unit: str) -> Path:
-        self.calls.append(("buffer", input_fc, output_fc, distance, unit))
+               distance: float, unit: str,
+               dissolve_field: str | None = None) -> Path:
+        self.calls.append(("buffer", input_fc, output_fc, distance, unit,
+                           dissolve_field))
         p = Path(output_fc)
         if p.parent.exists():
             p.touch()
@@ -30,6 +32,63 @@ class MockGeoProcessor(IGeoProcessor):
     def intersect(self, inputs: list[str], output_fc: str) -> Path:
         self.calls.append(("intersect", inputs, output_fc))
         p = Path(output_fc)
+        if p.parent.exists():
+            p.touch()
+        return p
+
+    def select_by_attribute(self, input_fc: str, output_fc: str,
+                            where_clause: str) -> Path:
+        self.calls.append(("select_by_attribute", input_fc, output_fc,
+                           where_clause))
+        p = Path(output_fc)
+        if p.parent.exists():
+            p.touch()
+        return p
+
+    def union(self, inputs: list[str], output_fc: str) -> Path:
+        self.calls.append(("union", inputs, output_fc))
+        p = Path(output_fc)
+        if p.parent.exists():
+            p.touch()
+        return p
+
+    def dissolve(self, input_fc: str, output_fc: str,
+                 dissolve_field: str) -> Path:
+        self.calls.append(("dissolve", input_fc, output_fc, dissolve_field))
+        p = Path(output_fc)
+        if p.parent.exists():
+            p.touch()
+        return p
+
+    def spatial_join(self, target_fc: str, join_fc: str,
+                     output_fc: str) -> Path:
+        self.calls.append(("spatial_join", target_fc, join_fc, output_fc))
+        p = Path(output_fc)
+        if p.parent.exists():
+            p.touch()
+        return p
+
+    def merge(self, inputs: list[str], output_fc: str) -> Path:
+        self.calls.append(("merge", inputs, output_fc))
+        p = Path(output_fc)
+        if p.parent.exists():
+            p.touch()
+        return p
+
+    def project(self, input_fc: str, output_fc: str,
+                spatial_reference: str) -> Path:
+        self.calls.append(("project", input_fc, output_fc, spatial_reference))
+        p = Path(output_fc)
+        if p.parent.exists():
+            p.touch()
+        return p
+
+    def summary_statistics(self, input_fc: str, output_table: str,
+                           statistics_fields: list[list[str]],
+                           case_field: str | None = None) -> Path:
+        self.calls.append(("summary_statistics", input_fc, output_table,
+                           statistics_fields, case_field))
+        p = Path(output_table)
         if p.parent.exists():
             p.touch()
         return p

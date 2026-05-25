@@ -13,11 +13,17 @@ class ArcPyGeoProcessor(IGeoProcessor):
         self._arcpy = arcpy
 
     def buffer(self, input_fc: str, output_fc: str,
-               distance: float, unit: str) -> Path:
+               distance: float, unit: str,
+               dissolve_field: str | None = None) -> Path:
         try:
-            self._arcpy.analysis.Buffer(
-                input_fc, output_fc, f"{distance} {unit}"
-            )
+            dist_str = f"{distance} {unit}"
+            if dissolve_field:
+                self._arcpy.analysis.Buffer(
+                    input_fc, output_fc, dist_str,
+                    dissolve_option="LIST", dissolve_field=[dissolve_field]
+                )
+            else:
+                self._arcpy.analysis.Buffer(input_fc, output_fc, dist_str)
             return Path(output_fc)
         except self._arcpy.ExecuteError as e:
             from arcgis_agent.exceptions import ArcGISError
@@ -48,6 +54,114 @@ class ArcPyGeoProcessor(IGeoProcessor):
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_INTERSECT_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def select_by_attribute(self, input_fc: str, output_fc: str,
+                            where_clause: str) -> Path:
+        try:
+            temp_layer = "temp_select_layer"
+            self._arcpy.management.MakeFeatureLayer(input_fc, temp_layer)
+            try:
+                self._arcpy.management.SelectLayerByAttribute(
+                    temp_layer, "NEW_SELECTION", where_clause
+                )
+                self._arcpy.management.CopyFeatures(temp_layer, output_fc)
+            finally:
+                self._arcpy.management.Delete(temp_layer)
+            return Path(output_fc)
+        except self._arcpy.ExecuteError as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="GP_SELECT_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def union(self, inputs: list[str], output_fc: str) -> Path:
+        try:
+            self._arcpy.analysis.Union(inputs, output_fc)
+            return Path(output_fc)
+        except self._arcpy.ExecuteError as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="GP_UNION_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def dissolve(self, input_fc: str, output_fc: str,
+                 dissolve_field: str) -> Path:
+        try:
+            self._arcpy.management.Dissolve(
+                input_fc, output_fc, dissolve_field
+            )
+            return Path(output_fc)
+        except self._arcpy.ExecuteError as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="GP_DISSOLVE_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def spatial_join(self, target_fc: str, join_fc: str,
+                     output_fc: str) -> Path:
+        try:
+            self._arcpy.analysis.SpatialJoin(target_fc, join_fc, output_fc)
+            return Path(output_fc)
+        except self._arcpy.ExecuteError as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="GP_SPATIAL_JOIN_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def merge(self, inputs: list[str], output_fc: str) -> Path:
+        try:
+            self._arcpy.management.Merge(inputs, output_fc)
+            return Path(output_fc)
+        except self._arcpy.ExecuteError as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="GP_MERGE_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def project(self, input_fc: str, output_fc: str,
+                spatial_reference: str) -> Path:
+        try:
+            sr = self._arcpy.SpatialReference(int(spatial_reference))
+            self._arcpy.management.Project(input_fc, output_fc, sr)
+            return Path(output_fc)
+        except self._arcpy.ExecuteError as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="GP_PROJECT_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def summary_statistics(self, input_fc: str, output_table: str,
+                           statistics_fields: list[list[str]],
+                           case_field: str | None = None) -> Path:
+        try:
+            if case_field:
+                self._arcpy.analysis.Statistics(
+                    input_fc, output_table, statistics_fields, case_field
+                )
+            else:
+                self._arcpy.analysis.Statistics(
+                    input_fc, output_table, statistics_fields
+                )
+            return Path(output_table)
+        except self._arcpy.ExecuteError as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="GP_STATISTICS_FAILED",
                 message=str(e),
                 arcpy_messages=self._arcpy.GetMessages()
             )
