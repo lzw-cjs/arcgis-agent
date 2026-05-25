@@ -106,3 +106,8 @@ class IDataAccessor(ABC):
                 output_format: str) -> Path:
         """Convert data between formats (shp/gdb/csv/geojson)."""
         ...
+
+    @abstractmethod
+    def get_count(self, dataset_path) -> int:
+        """Get record/feature count for a dataset."""
+        ...
