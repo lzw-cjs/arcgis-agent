@@ -23,7 +23,7 @@ progress:
 ## 当前位置
 
 **阶段:** Phase 1 / 6 — CLI 基础框架 & 核心基础设施
-**计划:** 5 plans (01-01 ~ 01-05), 3 complete
+**计划:** 5 plans (01-01 ~ 01-05), 4 complete
 **状态:** Phase 1 in progress
 
 ## 进度
