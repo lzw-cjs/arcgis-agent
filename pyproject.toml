@@ -22,7 +22,6 @@ arcgis-agent-mcp = "arcgis_agent.mcp_server:main"
 packages = ["src/arcgis_agent"]
 
 [project.entry-points."arcgis_agent.commands"]
-# 命令插件注册点（Phase 1+ 填充）
 workspace = "arcgis_agent.commands.workspace:register"
 project = "arcgis_agent.commands.project:register"
 data = "arcgis_agent.commands.data:register"
