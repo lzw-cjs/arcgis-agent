@@ -269,3 +269,15 @@ class ArcPyDataAccessor(IDataAccessor):
                 message=str(e),
                 arcpy_messages=self._arcpy.GetMessages()
             )
+
+    def get_count(self, dataset_path) -> int:
+        try:
+            result = self._arcpy.management.GetCount(str(dataset_path))
+            return int(result[0])
+        except self._arcpy.ExecuteError as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="DATA_COUNT_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )

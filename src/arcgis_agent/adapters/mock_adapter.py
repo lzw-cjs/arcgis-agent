@@ -145,3 +145,7 @@ class MockDataAccessor(IDataAccessor):
         if p.parent.exists():
             p.touch()
         return p
+
+    def get_count(self, dataset_path) -> int:
+        self.calls.append(("get_count", str(dataset_path)))
+        return 42
