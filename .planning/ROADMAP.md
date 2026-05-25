@@ -65,9 +65,9 @@
 - [ ] 退出码语义明确（0=成功, 1=用户错误, 2=系统错误, 3=arcpy 错误）
 - [ ] 强制 UTF-8 stdout/stderr，pathlib 处理所有路径
 - [ ] 日志系统，`--verbose`/`--quiet` 控制级别，日志输出到 stderr
-- [ ] arcpy 封装接口（IGeoProcessor, IMapDocument, IDataAccessor）
-- [ ] 真实 ArcPy 实现（lazy import arcpy，构造函数内导入）
-- [ ] Mock 实现（用于单元测试，不需要 ArcGIS 许可证）
+- [x] arcpy 封装接口（IGeoProcessor, IMapDocument, IDataAccessor）
+- [x] 真实 ArcPy 实现（lazy import arcpy，构造函数内导入）
+- [x] Mock 实现（用于单元测试，不需要 ArcGIS 许可证）
 - [ ] Base Service 类，依赖注入 Adapter
 - [ ] 环境检测模块，启动时验证 arcpy 可用性和许可证状态
 
@@ -95,7 +95,7 @@
 
 - [ ] 01-01-PLAN.md — Result 模型 + 异常体系 + 退出码映射
 - [x] 01-02-PLAN.md — CLI 框架 (Click group + 全局选项 + 插件加载 + 日志 + UTF-8)
-- [ ] 01-03-PLAN.md — Adapter 接口 + ArcPy 真实实现 + Mock 实现
+- [x] 01-03-PLAN.md — Adapter 接口 + ArcPy 真实实现 + Mock 实现
 - [ ] 01-04-PLAN.md — BaseService 依赖注入 + 环境检测模块
 - [ ] 01-05-PLAN.md — 全模块单元测试 (无 ArcGIS 许可证可运行)
 

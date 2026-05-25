@@ -20,9 +20,9 @@
 
 ### Adapter Layer (ADP)
 
-- [ ] **ADP-01**: arcpy 封装接口（IGeoProcessor, IMapDocument, IDataAccessor）
-- [ ] **ADP-02**: 真实 ArcPy 实现（lazy import arcpy，构造函数内导入）
-- [ ] **ADP-03**: Mock 实现（用于单元测试，不需要 ArcGIS 许可证）
+- [x] **ADP-01**: arcpy 封装接口（IGeoProcessor, IMapDocument, IDataAccessor）
+- [x] **ADP-02**: 真实 ArcPy 实现（lazy import arcpy，构造函数内导入）
+- [x] **ADP-03**: Mock 实现（用于单元测试，不需要 ArcGIS 许可证）
 - [ ] **ADP-04**: Base Service 类，依赖注入 Adapter
 
 ### Workspace & Project (PROJ)
