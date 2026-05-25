@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Conda / Virtual env
+arcgis-agent/
+.conda/
+*.conda
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Project
+.planning/tmp/
+.planning/phases/*/.continue-here*
+.planning/HANDOFF.json
+
+# Logs
+*.log
