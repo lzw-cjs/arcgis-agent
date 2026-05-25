@@ -89,6 +89,16 @@
 | 插件导入副作用（PITFALL #14） | 延迟导入，arcpy 仅在函数内 import |
 | 许可证不可用（PITFALL #2） | 启动检测，CheckOutExtension/CheckInExtension + try/finally |
 
+### 计划
+
+**Plans:** 5 plans
+
+- [ ] 01-01-PLAN.md — Result 模型 + 异常体系 + 退出码映射
+- [x] 01-02-PLAN.md — CLI 框架 (Click group + 全局选项 + 插件加载 + 日志 + UTF-8)
+- [ ] 01-03-PLAN.md — Adapter 接口 + ArcPy 真实实现 + Mock 实现
+- [ ] 01-04-PLAN.md — BaseService 依赖注入 + 环境检测模块
+- [ ] 01-05-PLAN.md — 全模块单元测试 (无 ArcGIS 许可证可运行)
+
 ---
 
 ## Phase 2: 数据操作（发现 + 管理）

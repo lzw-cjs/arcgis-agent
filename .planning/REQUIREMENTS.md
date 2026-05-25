@@ -11,12 +11,12 @@
 
 ### CLI Core (CLI)
 
-- [ ] **CLI-01**: Click 主命令组，支持 `--help`, `--version`, `--json`, `--verbose`, `--quiet`
-- [ ] **CLI-02**: 插件加载器，通过 `entry_points("arcgis_agent.commands")` 自动发现命令
+- [x] **CLI-01**: Click 主命令组，支持 `--help`, `--version`, `--json`, `--verbose`, `--quiet`
+- [x] **CLI-02**: 插件加载器，通过 `entry_points("arcgis_agent.commands")` 自动发现命令
 - [ ] **CLI-03**: 统一 Result 模型（success/code/message/data/warnings），JSON 输出
-- [ ] **CLI-04**: 退出码语义明确（0=成功, 1=用户错误, 2=系统错误, 3=arcpy 错误）
-- [ ] **CLI-05**: 强制 UTF-8 stdout/stderr，pathlib 处理所有路径
-- [ ] **CLI-06**: 日志系统，`--verbose`/`--quiet` 控制级别，日志输出到 stderr
+- [x] **CLI-04**: 退出码语义明确（0=成功, 1=用户错误, 2=系统错误, 3=arcpy 错误）
+- [x] **CLI-05**: 强制 UTF-8 stdout/stderr，pathlib 处理所有路径
+- [x] **CLI-06**: 日志系统，`--verbose`/`--quiet` 控制级别，日志输出到 stderr
 
 ### Adapter Layer (ADP)
 

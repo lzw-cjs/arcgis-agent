@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-05-25T13:32:35.021Z"
+last_updated: "2026-05-25T14:55:17Z"
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_plans: 8
+  completed_plans: 6
+  percent: 75
 ---
 
 # 项目状态
@@ -18,19 +18,19 @@ progress:
 
 **项目:** arcgis-agent
 **核心价值:** 让 AI Agent 能够通过标准化 CLI 接口操控 ArcGIS Pro，实现 GIS 工作流的自动化和智能化
-**当前焦点:** Phase 0 — 项目搭建 & 环境准备
+**当前焦点:** Phase 1 — CLI 基础框架 & 核心基础设施
 
 ## 当前位置
 
-**阶段:** Phase 0 / 6 — 项目搭建 & 环境准备
-**计划:** 3 plans (00-01, 00-02, 00-03)
-**状态:** Phase 0 complete, ready for Phase 1
+**阶段:** Phase 1 / 6 — CLI 基础框架 & 核心基础设施
+**计划:** 5 plans (01-01 ~ 01-05), 3 complete
+**状态:** Phase 1 in progress
 
 ## 进度
 
 ```
 Phase 0 ██████████ 100%  项目搭建 & 环境准备
-Phase 1 ░░░░░░░░░░  0%  CLI 基础框架
+Phase 1 ██████░░░░  60%  CLI 基础框架
 Phase 2 ░░░░░░░░░░  0%  数据操作
 Phase 3 ░░░░░░░░░░  0%  地理处理操作
 Phase 4 ░░░░░░░░░░  0%  地图生产
@@ -38,7 +38,7 @@ Phase 5 ░░░░░░░░░░  0%  MCP Server
 Phase 6 ░░░░░░░░░░  0%  高级分析 (v1.1)
 ```
 
-总体进度: [██░░░░░░░░] 14%
+总体进度: [███░░░░░░░] 21%
 
 ## 最近决策
 
@@ -50,10 +50,21 @@ Phase 6 ░░░░░░░░░░  0%  高级分析 (v1.1)
 | 2026-05-25 | 四层架构（Entry → Command → Service → Adapter） | CLI 和 MCP 共享 Service 层，arcpy 隔离在 Adapter |
 | 2026-05-25 | 使用 entry_points 实现插件发现 | 标准 Python 机制，支持 pip 安装第三方插件 |
 | 2026-05-25 | 两步激活：先 proenv.bat（DLL 路径），再 conda activate（环境切换） | 确保 arcpy 能找到 ArcGIS Pro DLL |
+| 2026-05-25 | Click group 使用 invoke_without_command=True | 确保 --verbose/--quiet 冲突检查在无子命令时也能运行 |
+| 2026-05-25 | Mock touch() 用 parent.exists() 保护 | 避免测试中非存在路径导致 FileNotFoundError |
 
 ## 待办事项
 
 （无）
+
+## 执行记录
+
+**Phase 0 完成时间:** 2026-05-25
+**执行偏差:**
+
+- conda create --clone 因 esri-build 渠道 404 失败，改用手动复制 + conda config 注册
+- pip install -e . 因中文用户名路径编码问题失败，改用 pip install .（非 editable）
+- arcgis-agent conda 环境路径: `C:\conda-envs\arcgis-agent`（非默认 conda envs 目录）
 
 ## 阻塞/关注
 
@@ -62,7 +73,7 @@ Phase 6 ░░░░░░░░░░  0%  高级分析 (v1.1)
 ## 会话连续性
 
 **上次会话:** 2026-05-25
-**停在:** Phase 0 计划完成，Ready to execute
+**停在:** Phase 1 Plan 01-03 完成，可开始 01-04
 **恢复文件:** 无
 
 ---
