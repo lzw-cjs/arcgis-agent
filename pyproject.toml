@@ -23,7 +23,9 @@ packages = ["src/arcgis_agent"]
 
 [project.entry-points."arcgis_agent.commands"]
 # 命令插件注册点（Phase 1+ 填充）
+workspace = "arcgis_agent.commands.workspace:register"
+project = "arcgis_agent.commands.project:register"
+data = "arcgis_agent.commands.data:register"
+geoprocessing = "arcgis_agent.commands.geoprocessing:register"
+analysis = "arcgis_agent.commands.analysis:register"
 # map = "arcgis_agent.commands.map:register"
-# data = "arcgis_agent.commands.data:register"
-# analysis = "arcgis_agent.commands.analysis:register"
-# project = "arcgis_agent.commands.project:register"
