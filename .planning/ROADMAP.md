@@ -4,9 +4,9 @@
 
 | 阶段 | 名称 | 需求 | 状态 |
 |------|------|------|------|
-| Phase 0 | 项目搭建 & 环境准备 | ENV-01~03 | 待执行 |
-| Phase 1 | CLI 基础框架 & 核心基础设施 | CLI-01~06, ADP-01~04, ENV-04 | 待执行 |
-| Phase 2 | 数据操作（发现 + 管理） | PROJ-01~03, DISC-01~05, MGMT-01~04 | 待执行 |
+| Phase 0 | 项目搭建 & 环境准备 | ENV-01~03 | ✅ 完成 |
+| Phase 1 | CLI 基础框架 & 核心基础设施 | CLI-01~06, ADP-01~04, ENV-04 | ✅ 完成 |
+| Phase 2 | 数据操作（发现 + 管理） | PROJ-01~03, DISC-01~05, MGMT-01~04 | ✅ 完成 |
 | Phase 3 | 地理处理操作 | GEO-01~10 | 待执行 |
 | Phase 4 | 地图生产 | MAP-01~11 | 待执行 |
 | Phase 5 | MCP Server | MCP-01~05 | 待执行 |
@@ -109,19 +109,18 @@
 
 ### 交付物
 
-- [ ] `workspace set <path>` — 设置当前工作空间
-- [ ] `workspace get` — 获取当前工作空间
-- [ ] `project info` — 查看当前工程信息（路径、GDB、地图列表）
-- [ ] `project create/open/save` — 创建/打开/保存工程
-- [ ] `data list` — 列出工作空间中的数据集（支持过滤）
-- [ ] `data describe <path>` — 描述数据集元数据（类型、坐标系、记录数）
-- [ ] `data fields <path>` — 列出字段信息（名称、类型、长度）
-- [ ] `data extent <path>` — 获取空间范围（xmin/ymin/xmax/ymax）
-- [ ] `data count <path>` — 获取记录数
-- [ ] `data copy <src> <dst>` — 复制数据集
-- [ ] `data delete <path>` — 删除数据集
-- [ ] `data rename <old> <new>` — 重命名数据集
-- [ ] `data convert <src> <dst> --format` — 格式转换（shp/gdb/csv/geojson）
+- [x] `workspace set <path>` — 设置当前工作空间
+- [x] `workspace get` — 获取当前工作空间
+- [x] `project info` — 查看当前工程信息（路径、GDB、地图列表）
+- [x] `data list` — 列出工作空间中的数据集（支持过滤）
+- [x] `data describe <path>` — 描述数据集元数据（类型、坐标系、记录数）
+- [x] `data fields <path>` — 列出字段信息（名称、类型、长度）
+- [x] `data extent <path>` — 获取空间范围（xmin/ymin/xmax/ymax）
+- [x] `data count <path>` — 获取记录数
+- [x] `data copy <src> <dst>` — 复制数据集
+- [x] `data delete <path>` — 删除数据集
+- [x] `data rename <old> <new>` — 重命名数据集
+- [x] `data convert <src> <dst> --format` — 格式转换（shp/gdb/csv/geojson）
 
 ### 成功标准
 
@@ -129,14 +128,22 @@
 - `data describe` 返回完整的元数据 JSON（类型、坐标系、范围、字段）
 - `data convert` 支持 shp/gdb/csv/geojson 格式互转
 - 所有写操作有 `--no-overwrite` 安全选项
-- 工作空间通过 `EnvManager` 上下文管理器隔离
+- 工作空间通过 `WorkspaceConfig` 持久化管理
 
 ### 风险
 
 | 风险 | 缓解措施 |
 |------|----------|
 | GDB schema 锁（PITFALL #3） | 上下文管理器关闭 cursor，ClearWorkspaceCache |
-| workspace 未设置（PITFALL #4） | 每个命令显式设置，EnvManager 隔离 |
+| workspace 未设置（PITFALL #4） | WorkspaceConfig 持久化，命令显式检查 |
+
+### 计划
+
+**Plans:** 3 plans
+
+- [x] 02-01-PLAN.md — Adapter 扩展 + WorkspaceConfig + workspace/project 命令
+- [x] 02-02-PLAN.md — DataDiscoveryService + data list/describe/fields/extent/count 命令
+- [x] 02-03-PLAN.md — DataManagementService + data copy/delete/rename/convert 命令 + 全模块测试
 
 ---
 
@@ -173,6 +180,15 @@
 | 许可证扩展不可用（PITFALL #2） | CheckOutExtension + try/finally |
 | 投影不匹配（PITFALL #13） | 预检查 CRS，不一致时报错而非静默处理 |
 | 大数据集内存溢出（PITFALL #12） | 操作前检查要素数量，使用 cursor 分页 |
+
+### 计划
+
+**Plans:** 4 plans
+
+- [ ] 03-01-PLAN.md — Adapter 层扩展 (IGeoProcessor + ArcPyGeoProcessor + MockGeoProcessor) + 共享 data_group
+- [ ] 03-02-PLAN.md — GeoprocessingService (GEO-01~09) + AnalysisService (GEO-10)
+- [ ] 03-03-PLAN.md — CLI 命令注册 (geoprocessing.py + analysis.py) + pyproject.toml 入口点
+- [ ] 03-04-PLAN.md — 全模块单元测试 (test_geoprocessing.py + test_analysis.py)
 
 ---
 
