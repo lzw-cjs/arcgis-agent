@@ -118,12 +118,25 @@ class MockMapDocument(IMapDocument):
             p.touch()
         return p
 
+    def get_project_info(self, project_path: Path) -> dict:
+        self.calls.append(("get_project_info", str(project_path)))
+        return {
+            "project_path": str(project_path),
+            "default_gdb": str(project_path.parent / "default.gdb"),
+            "name": project_path.stem,
+            "maps": ["Map"],
+        }
+
 
 class MockDataAccessor(IDataAccessor):
     """Mock data accessor -- records calls and returns stub data."""
 
     def __init__(self):
         self.calls: list[tuple] = []
+
+    def list_datasets(self, workspace, dataset_type=None, name_pattern=None):
+        self.calls.append(("list_datasets", str(workspace), dataset_type, name_pattern))
+        return ["mock_feature_class", "mock_table"]
 
     def list_feature_classes(self, workspace: Path) -> list[str]:
         self.calls.append(("list_feature_classes", str(workspace)))
@@ -149,3 +162,30 @@ class MockDataAccessor(IDataAccessor):
     def get_count(self, dataset_path) -> int:
         self.calls.append(("get_count", str(dataset_path)))
         return 42
+
+    def get_fields(self, dataset_path) -> list[dict]:
+        self.calls.append(("get_fields", str(dataset_path)))
+        return [
+            {"name": "OBJECTID", "type": "Integer", "length": 4},
+            {"name": "Shape", "type": "Geometry", "length": 0},
+        ]
+
+    def get_extent(self, dataset_path) -> dict:
+        self.calls.append(("get_extent", str(dataset_path)))
+        return {"xmin": 0.0, "ymin": 0.0, "xmax": 100.0, "ymax": 100.0}
+
+    def copy(self, src, dst) -> Path:
+        self.calls.append(("copy", str(src), str(dst)))
+        p = Path(dst)
+        if p.parent.exists():
+            p.touch()
+        return p
+
+    def delete(self, dataset_path) -> None:
+        self.calls.append(("delete", str(dataset_path)))
+
+    def rename(self, dataset_path, new_name) -> Path:
+        self.calls.append(("rename", str(dataset_path), new_name))
+        p = Path(dataset_path).parent / new_name
+        p.touch()
+        return p
