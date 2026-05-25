@@ -45,9 +45,9 @@
 
 **Plans:** 3 plans
 
-- [ ] 00-01-PLAN.md — conda 环境克隆 + 依赖安装
+- [x] 00-01-PLAN.md — conda 环境克隆 + 依赖安装
 - [ ] 00-02-PLAN.md — 项目骨架 + pyproject.toml
-- [ ] 00-03-PLAN.md — wrapper .bat 脚本
+- [x] 00-03-PLAN.md — wrapper .bat 脚本
 
 ---
 
