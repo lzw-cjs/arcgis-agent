@@ -190,7 +190,7 @@
 - [x] 03-03-PLAN.md — CLI 命令注册 (geoprocessing.py + analysis.py) + pyproject.toml 入口点
 - [x] 03-04-PLAN.md — 全模块单元测试 (test_geoprocessing.py + test_analysis.py)
 - [x] 03-05-PLAN.md — CRS 坐标系一致性检查 (D-10/D-16, VERIFICATION Gap 1)
-- [ ] 03-06-PLAN.md — 许可证扩展管理 (CheckOutExtension, VERIFICATION Gap 2)
+- [x] 03-06-PLAN.md — 许可证扩展管理 (CheckOutExtension, VERIFICATION Gap 2)
 - [x] 03-07-PLAN.md — CLI 集成测试 (Click CliRunner, VERIFICATION Gap 3)
 
 ---
