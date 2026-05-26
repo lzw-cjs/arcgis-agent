@@ -30,3 +30,14 @@ Desktop.ini
 
 # Logs
 *.log
+
+# Temp test output
+b
+b.shp
+out.png
+out.shp
+out_fc
+*.gdb/
+
+# Third-party tools
+.firecrawl/
