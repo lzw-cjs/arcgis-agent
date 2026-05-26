@@ -1,60 +1,68 @@
 """Mock LLM provider for testing and offline development (Phase 7).
 
 Provides canned responses mimicking an LLM without requiring an API key.
+Implements ILLMProvider ABC for drop-in replacement in tests.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
+from langchain_core.messages import AIMessage, BaseMessage
+
+from arcgis_agent.adapters.base import ILLMProvider
 
 
-@dataclass
-class MockMessage:
-    """Minimal message class mimicking LangChain AIMessage."""
+class MockLLMProvider(ILLMProvider):
+    """Mock LLM provider returning preset responses.
 
-    content: str
+    Does NOT call any external API. Responses are configured via the
+    `responses` dict passed to __init__.
 
+    Usage:
+        provider = MockLLMProvider(responses={
+            "chat": "Mock response for simple chat",
+            "final": "Operation completed (mock).",
+            "tool_log": [
+                {"name": "gp_buffer", "args": {"distance": 100}, "result": "Buffer OK", "success": True},
+            ],
+        })
+        response = provider.chat("hello")
+        response, log = provider.chat_with_tools("buffer roads")
+    """
 
-class MockLLMProvider:
-    """Mock LLM provider returning canned GIS responses."""
-
-    def __init__(self) -> None:
+    def __init__(self, responses: dict | None = None) -> None:
+        self._responses = responses or {}
         self._tools: list = []
-        self._responses: dict[str, Any] = {}
-
-    def chat(self, message: str) -> MockMessage:
-        """Return a canned response for the given message."""
-        if not message:
-            return MockMessage(content="请提供具体的GIS操作需求")
-        return MockMessage(content=f"收到您的请求：{message}。我将使用GIS工具为您处理。")
+        self._call_count = 0
 
     def register_tools(self, tools: list) -> None:
-        """Register GIS tools available for function calling."""
+        """Register GIS tools (stored for test assertions, not called)."""
         self._tools = list(tools)
 
-    def chat_with_tools(self, message: str) -> tuple[MockMessage, list]:
-        """Process a message with available tools and return (response, tool_log)."""
-        tool_log: list[dict[str, Any]] = []
-        response_content = f"处理请求：{message}"
+    def chat(
+        self,
+        user_message: str,
+        history: list[BaseMessage] | None = None,
+    ) -> AIMessage:
+        """Return a canned response for the given message.
 
-        if self._tools:
-            # Simulate tool usage for GIS-related keywords
-            tool_names = [getattr(t, "name", str(t)) for t in self._tools]
-            if "buffer" in message.lower():
-                tool_log.append({
-                    "name": "gp_buffer",
-                    "success": True,
-                    "args": {"distance": 100},
-                    "result": "缓冲区分析完成",
-                })
-                response_content = "已完成缓冲区分析。"
-            elif any(kw in message.lower() for kw in ("clip", "裁剪", "intersect", "叠加")):
-                tool_log.append({
-                    "name": "gp_clip",
-                    "success": True,
-                    "args": {},
-                    "result": "裁剪操作完成",
-                })
-                response_content = "已完成裁剪操作。"
+        Returns the value of self._responses["chat"] if configured,
+        otherwise a default message including the user input.
+        """
+        self._call_count += 1
+        msg = self._responses.get("chat", "Mock response for: " + user_message)
+        return AIMessage(content=msg)
 
-        return MockMessage(content=response_content), tool_log
+    def chat_with_tools(
+        self,
+        user_message: str,
+        history: list[BaseMessage] | None = None,
+        max_iterations: int = 5,
+    ) -> tuple[AIMessage, list[dict]]:
+        """Return a canned (response, tool_log) tuple.
+
+        Uses self._responses["tool_log"] for the tool execution log and
+        self._responses["final"] for the final text response.
+        """
+        self._call_count += 1
+        tool_log: list[dict] = self._responses.get("tool_log", [])
+        msg = self._responses.get("final", "Operation completed (mock).")
+        return AIMessage(content=msg), tool_log

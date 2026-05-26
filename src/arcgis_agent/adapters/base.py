@@ -1,7 +1,9 @@
-"""Adapter interfaces (ABC) for arcpy isolation."""
+"""Adapter interfaces (ABC) for arcpy isolation and LLM providers."""
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
+
+from langchain_core.messages import AIMessage, BaseMessage
 
 
 class IGeoProcessor(ABC):
@@ -198,4 +200,70 @@ class IDataAccessor(ABC):
     @abstractmethod
     def rename(self, dataset_path, new_name) -> Path:
         """Rename a dataset."""
+        ...
+
+
+class ILLMProvider(ABC):
+    """Interface for LLM providers (OpenAI-compatible API).
+
+    Supports any provider with an OpenAI-compatible chat completions endpoint
+    (Qwen/通义千问, DeepSeek, OpenAI, etc.) by configuring base_url.
+
+    Implementations:
+        - OpenAICompatibleProvider (production): wraps langchain-openai ChatOpenAI
+        - MockLLMProvider (testing): returns canned responses, no API key needed
+    """
+
+    @abstractmethod
+    def chat(
+        self,
+        user_message: str,
+        history: list[BaseMessage] | None = None,
+    ) -> AIMessage:
+        """Send a chat message and get a text response (no tool calling).
+
+        Used for: greeting, clarification, explanation of results.
+
+        Args:
+            user_message: The user's input message.
+            history: Optional conversation history as list of BaseMessage.
+
+        Returns:
+            AIMessage with the model's text response.
+        """
+        ...
+
+    @abstractmethod
+    def chat_with_tools(
+        self,
+        user_message: str,
+        history: list[BaseMessage] | None = None,
+        max_iterations: int = 5,
+    ) -> tuple[AIMessage, list[dict]]:
+        """Execute the full chat-tool-response loop.
+
+        The provider invokes the LLM, checks for tool_calls, executes tools,
+        and returns the final response with a tool execution log.
+
+        Args:
+            user_message: The user's input message.
+            history: Optional conversation history.
+            max_iterations: Maximum number of tool-calling iterations (safety limit).
+
+        Returns:
+            Tuple of (final_response, tool_call_log) where tool_call_log is a
+            list of dicts with keys: name, args, result, success.
+        """
+        ...
+
+    @abstractmethod
+    def register_tools(self, tools: list) -> None:
+        """Register GIS tools available for function calling.
+
+        Must be called before chat_with_tools(). Tools are LangChain
+        StructuredTool or BaseTool instances.
+
+        Args:
+            tools: List of LangChain tool objects (BaseTool or StructuredTool).
+        """
         ...
