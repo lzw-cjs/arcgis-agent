@@ -892,22 +892,22 @@ analysis = "arcgis_agent.commands.analysis:register"
 | A6 | CRS check via `arcpy.Describe(fc).spatialReference.factoryCode` is reliable | CRS mismatch check | CRS detection fails; need different comparison method |
 | A7 | `arcpy.management.Merge` works without FieldMappings for simple same-schema merges | Merge tool ref | Merge fails for simple cases; need explicit field mapping |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **CRS check implementation location**
    - What we know: D-10 says "pre-check CRS consistency"; D-16 says "fail when ArcPy unavailable"
    - What's unclear: Should CRS check be in adapter (has arcpy) or service (no arcpy)?
-   - Recommendation: Put in adapter (intersect/union methods) since it needs arcpy.Describe. Service just calls adapter and gets Result back.
+   - RESOLVED: Put in adapter (intersect/union methods) since it needs arcpy.Describe. Service just calls adapter and gets Result back.
 
 2. **Buffer dissolve_field as single field vs list**
    - What we know: D-07 says support `--dissolve-field` (singular); ArcPy accepts list
    - What's unclear: Should we support multiple dissolve fields?
-   - Recommendation: Single field only (D-07 says `--dissolve-field`, singular). Pass as `[dissolve_field]` list to ArcPy.
+   - RESOLVED: Single field only (D-07 says `--dissolve-field`, singular). Pass as `[dissolve_field]` list to ArcPy.
 
 3. **Summary statistics output format**
    - What we know: D-11 says return "output path, feature count, processing time"
    - What's unclear: Statistics produces a table, not features. What count to return?
-   - Recommendation: Return table row count as "feature_count" for consistency. Include the table path.
+   - RESOLVED: Return table row count as "feature_count" for consistency. Include the table path.
 
 ## Metadata
 

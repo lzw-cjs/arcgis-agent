@@ -1,0 +1,17 @@
+name: arcgis-agent
+channels:
+  - esri
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - arcpy
+  - numpy=1.24.3
+  - pandas=2.0.2
+  - pip
+  - pip:
+    - click>=8.1
+    - mcp>=1.0
+    - rich
+    - pydantic>=2.11
+    - hatchling
