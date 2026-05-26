@@ -127,3 +127,97 @@ class TestGeoprocessingCLI:
         assert output['success'] is False
         assert output['code'] == 'FILE_NOT_FOUND'
         assert 'not found' in output['message'].lower()
+
+
+class TestAnalysisCLI:
+    """CLI integration tests for analysis commands (analysis summary-stats)."""
+
+    def test_summary_stats_cli_json_output(self, analysis_cli, runner, tmp_path):
+        """analysis summary-stats outputs valid JSON with output, feature_count, elapsed_seconds (D-11)."""
+        input_f = tmp_path / "census.shp"
+        input_f.touch()
+
+        mock_result = Result.ok(
+            data={"output": str(tmp_path / "census_stats"),
+                  "feature_count": 50,
+                  "elapsed_seconds": 0.25},
+            message="Statistics computed: census_stats"
+        )
+
+        mock_svc = MagicMock()
+        mock_svc.summary_statistics.return_value = mock_result
+
+        with patch(
+            'arcgis_agent.services.analysis_service.AnalysisService',
+            return_value=mock_svc
+        ):
+            result = runner.invoke(analysis_cli, [
+                'analysis', 'summary-stats', str(input_f),
+                '--field', 'pop:SUM,area:MEAN',
+            ])
+
+        assert result.exit_code == 0
+        output = json.loads(result.output.strip())
+        assert output['success'] is True
+        assert output['code'] == 'OK'
+        assert 'census_stats' in output['data']['output']
+        assert output['data']['feature_count'] == 50
+        assert output['data']['elapsed_seconds'] == 0.25
+
+    def test_summary_stats_cli_with_case_field(self, analysis_cli, runner, tmp_path):
+        """analysis summary-stats passes --case-field and --output to AnalysisService (D-15)."""
+        input_f = tmp_path / "blocks.shp"
+        input_f.touch()
+        out_table = tmp_path / "custom_output"
+
+        mock_result = Result.ok(
+            data={"output": str(out_table), "feature_count": 12, "elapsed_seconds": 0.15},
+            message="Statistics computed: custom_output"
+        )
+
+        mock_svc = MagicMock()
+        mock_svc.summary_statistics.return_value = mock_result
+
+        with patch(
+            'arcgis_agent.services.analysis_service.AnalysisService',
+            return_value=mock_svc
+        ):
+            result = runner.invoke(analysis_cli, [
+                'analysis', 'summary-stats', str(input_f),
+                '--field', 'pop:SUM',
+                '--case-field', 'STATE',
+                '--output', str(out_table),
+            ])
+
+        assert result.exit_code == 0
+        output = json.loads(result.output.strip())
+        assert output['success'] is True
+        assert output['code'] == 'OK'
+        assert output['data']['output'] == str(out_table)
+        assert output['data']['feature_count'] == 12
+        assert output['data']['elapsed_seconds'] == 0.15
+
+    def test_summary_stats_cli_error_output(self, analysis_cli, runner, tmp_path):
+        """analysis summary-stats error is output as valid JSON with success=False."""
+        mock_result = Result.error(
+            code="FILE_NOT_FOUND",
+            message="Input not found: /nonexistent/census.shp"
+        )
+
+        mock_svc = MagicMock()
+        mock_svc.summary_statistics.return_value = mock_result
+
+        with patch(
+            'arcgis_agent.services.analysis_service.AnalysisService',
+            return_value=mock_svc
+        ):
+            result = runner.invoke(analysis_cli, [
+                'analysis', 'summary-stats', '/nonexistent/census.shp',
+                '--field', 'pop:SUM',
+            ])
+
+        assert result.exit_code == 0
+        output = json.loads(result.output.strip())
+        assert output['success'] is False
+        assert output['code'] == 'FILE_NOT_FOUND'
+        assert 'not found' in output['message'].lower()
