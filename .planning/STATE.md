@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: milestone
 status: ready_to_plan
-last_updated: "2026-05-26T08:02:26.616Z"
+last_updated: "2026-05-26T10:00:00.000Z"
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 24
   completed_plans: 25
-  percent: 100
+  percent: 71
 ---
 
 # 项目状态
@@ -25,6 +25,7 @@ progress:
 **阶段:** Phase 7 — Web UI, AI Integration & MCP E2E Testing
 **计划:** 0 plans（待规划）
 **状态:** Ready to plan
+**制品:** CONTEXT.md ✓, AI-SPEC.md ✓, RESEARCH.md ✓, VALIDATION.md ✓, UI-SPEC.md ✓
 
 ## 进度
 
@@ -45,6 +46,8 @@ Phase 7 ░░░░░░░░░░  0%  Web UI, AI Integration & MCP E2E Tes
 
 | 日期 | 决策 | 理由 |
 |------|------|------|
+| 2026-05-26 | Phase 7 UI 设计合约: Ant Design, 单面板聊天布局, 60/30/10 配色 | 前端阶段需要明确的视觉合约，避免执行期临时样式决策 |
+| 2026-05-26 | Phase 7 AI 框架: LangChain (`langchain-core` + `langchain-openai`) | 与项目 Adapter 模式一致，支持国内模型 OpenAI 兼容 API |
 | 2026-05-26 | DataDiscoveryService 跳过 super().__init__() 避免导入 arcpy | 只需 data adapter，不需 gp/map |
 | 2026-05-26 | data 命令使用 _run() helper 包裹 try/except | 确保所有错误（包括 arcpy 缺失）返回 JSON 而非崩溃 |
 | 2026-05-25 | 使用 Click（非 Typer）作为 CLI 框架 | 插件架构更直接，Group.add_command() 适合动态加载 |
@@ -62,6 +65,7 @@ Phase 7 ░░░░░░░░░░  0%  Web UI, AI Integration & MCP E2E Tes
 ### Roadmap Evolution
 
 - Phase 7 added: Web UI, AI Integration & MCP E2E Testing (2026-05-26)
+- Phase 7 UI-SPEC approved: Ant Design, 单面板聊天布局, 8-point 间距, 60/30/10 配色 (2026-05-26)
 
 ## 执行记录
 
@@ -90,8 +94,8 @@ Phase 7 ░░░░░░░░░░  0%  Web UI, AI Integration & MCP E2E Tes
 ## 会话连续性
 
 **上次会话:** 2026-05-26
-**停在:** Phase 7 已添加到路线图，待规划
-**恢复文件:** .planning/ROADMAP.md
+**停在:** Phase 7 UI-SPEC 已批准，RESEARCH.md + VALIDATION.md 已生成，待规划
+**恢复文件:** .planning/ROADMAP.md, .planning/phases/07-web-ui-ai-integration-mcp-e2e-testing/
 
 ---
 
