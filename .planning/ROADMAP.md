@@ -323,8 +323,8 @@ Plans:
 - [x] 07-08-PLAN.md — Unit tests + start-web.bat + .gitignore final wiring (Wave 4)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 07-02-PLAN.md — 31 tool REST endpoints + TaskService + file upload (Wave 1)
-- [ ] 07-03-PLAN.md — LLMConfig + ILLMProvider ABC + providers + GIS tools (Wave 2)
+- [x] 07-02-PLAN.md — 31 tool REST endpoints + TaskService + file upload (Wave 1)
+- [x] 07-03-PLAN.md — LLMConfig + ILLMProvider ABC + providers + GIS tools (Wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 07-04-PLAN.md — ChatService agent loop + POST /api/v1/chat SSE endpoint (Wave 2)
