@@ -319,8 +319,8 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 Plans:
 **Wave 1**
-- [ ] 07-01-PLAN.md — FastAPI app factory + DI + schemas (Wave 1)
-- [ ] 07-08-PLAN.md — Unit tests + start-web.bat + .gitignore final wiring (Wave 4)
+- [x] 07-01-PLAN.md — FastAPI app factory + DI + schemas (Wave 1)
+- [x] 07-08-PLAN.md — Unit tests + start-web.bat + .gitignore final wiring (Wave 4)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 07-02-PLAN.md — 31 tool REST endpoints + TaskService + file upload (Wave 1)
