@@ -1,5 +1,4 @@
 """Geoprocessing service: buffer, clip, intersect, union, dissolve, spatial-join, merge, project, select."""
-from pathlib import Path
 import time
 
 from arcgis_agent.services.base import BaseService
@@ -26,7 +25,7 @@ class GeoprocessingService(BaseService):
                 message="At least 2 input layers required."
             )
         for inp in inputs:
-            if not Path(inp).exists():
+            if not self._data.exists(inp):
                 return Result.error(code="FILE_NOT_FOUND",
                                     message=f"Input not found: {inp}")
         return None
@@ -35,11 +34,10 @@ class GeoprocessingService(BaseService):
                             where_clause: str,
                             no_overwrite: bool = False) -> Result:
         """Select features by attribute query (GEO-01)."""
-        p_in = Path(input_fc)
-        if not p_in.exists():
+        if not self._data.exists(input_fc):
             return Result.error(code="FILE_NOT_FOUND",
                                 message=f"Input not found: {input_fc}")
-        if no_overwrite and Path(output_fc).exists():
+        if no_overwrite and self._data.exists(output_fc):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_fc}")
         t0 = time.perf_counter()
@@ -58,15 +56,13 @@ class GeoprocessingService(BaseService):
     def clip(self, input_fc: str, clip_fc: str, output_fc: str,
              no_overwrite: bool = False) -> Result:
         """Clip features to boundary (GEO-02)."""
-        p_in = Path(input_fc)
-        p_clip = Path(clip_fc)
-        if not p_in.exists():
+        if not self._data.exists(input_fc):
             return Result.error(code="FILE_NOT_FOUND",
                                 message=f"Input not found: {input_fc}")
-        if not p_clip.exists():
+        if not self._data.exists(clip_fc):
             return Result.error(code="FILE_NOT_FOUND",
                                 message=f"Clip features not found: {clip_fc}")
-        if no_overwrite and Path(output_fc).exists():
+        if no_overwrite and self._data.exists(output_fc):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_fc}")
         t0 = time.perf_counter()
@@ -96,15 +92,14 @@ class GeoprocessingService(BaseService):
             dissolve_field: Optional field to dissolve overlapping buffers.
             no_overwrite: Fail if output exists.
         """
-        p_in = Path(input_fc)
-        if not p_in.exists():
+        if not self._data.exists(input_fc):
             return Result.error(code="FILE_NOT_FOUND",
                                 message=f"Input not found: {input_fc}")
         if unit not in self.VALID_UNITS:
             return Result.error(code="INVALID_UNIT",
                                 message=f"Invalid unit: '{unit}'. "
                                         f"Valid: {', '.join(sorted(self.VALID_UNITS))}")
-        if no_overwrite and Path(output_fc).exists():
+        if no_overwrite and self._data.exists(output_fc):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_fc}")
         t0 = time.perf_counter()
@@ -127,7 +122,7 @@ class GeoprocessingService(BaseService):
         err = self._validate_multi_inputs(inputs)
         if err:
             return err
-        if no_overwrite and Path(output_fc).exists():
+        if no_overwrite and self._data.exists(output_fc):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_fc}")
         t0 = time.perf_counter()
@@ -149,7 +144,7 @@ class GeoprocessingService(BaseService):
         err = self._validate_multi_inputs(inputs)
         if err:
             return err
-        if no_overwrite and Path(output_fc).exists():
+        if no_overwrite and self._data.exists(output_fc):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_fc}")
         t0 = time.perf_counter()
@@ -169,11 +164,10 @@ class GeoprocessingService(BaseService):
                  dissolve_field: str,
                  no_overwrite: bool = False) -> Result:
         """Dissolve features by field (GEO-06)."""
-        p_in = Path(input_fc)
-        if not p_in.exists():
+        if not self._data.exists(input_fc):
             return Result.error(code="FILE_NOT_FOUND",
                                 message=f"Input not found: {input_fc}")
-        if no_overwrite and Path(output_fc).exists():
+        if no_overwrite and self._data.exists(output_fc):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_fc}")
         t0 = time.perf_counter()
@@ -192,15 +186,13 @@ class GeoprocessingService(BaseService):
     def spatial_join(self, target_fc: str, join_fc: str, output_fc: str,
                      no_overwrite: bool = False) -> Result:
         """Spatial join: transfer attributes from join features to target (GEO-07)."""
-        p_target = Path(target_fc)
-        p_join = Path(join_fc)
-        if not p_target.exists():
+        if not self._data.exists(target_fc):
             return Result.error(code="FILE_NOT_FOUND",
                                 message=f"Target not found: {target_fc}")
-        if not p_join.exists():
+        if not self._data.exists(join_fc):
             return Result.error(code="FILE_NOT_FOUND",
                                 message=f"Join features not found: {join_fc}")
-        if no_overwrite and Path(output_fc).exists():
+        if no_overwrite and self._data.exists(output_fc):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_fc}")
         t0 = time.perf_counter()
@@ -222,7 +214,7 @@ class GeoprocessingService(BaseService):
         err = self._validate_multi_inputs(inputs)
         if err:
             return err
-        if no_overwrite and Path(output_fc).exists():
+        if no_overwrite and self._data.exists(output_fc):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_fc}")
         t0 = time.perf_counter()
@@ -242,11 +234,10 @@ class GeoprocessingService(BaseService):
                 spatial_reference: str,
                 no_overwrite: bool = False) -> Result:
         """Project features to a different coordinate system (GEO-09)."""
-        p_in = Path(input_fc)
-        if not p_in.exists():
+        if not self._data.exists(input_fc):
             return Result.error(code="FILE_NOT_FOUND",
                                 message=f"Input not found: {input_fc}")
-        if no_overwrite and Path(output_fc).exists():
+        if no_overwrite and self._data.exists(output_fc):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_fc}")
         t0 = time.perf_counter()

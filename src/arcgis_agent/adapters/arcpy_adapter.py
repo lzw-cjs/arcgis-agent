@@ -540,10 +540,40 @@ class ArcPyDataAccessor(IDataAccessor):
         import arcpy  # LAZY: inside constructor, not at module level
         self._arcpy = arcpy
 
+    def exists(self, dataset_path: str) -> bool:
+        return bool(self._arcpy.Exists(dataset_path))
+
     def list_feature_classes(self, workspace: Path) -> list[str]:
         try:
             self._arcpy.env.workspace = str(workspace)
-            return self._arcpy.ListFeatureClasses()
+            return self._arcpy.ListFeatureClasses() or []
+        except (self._arcpy.ExecuteError, OSError) as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="DATA_LIST_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def list_datasets(self, workspace, dataset_type=None, name_pattern=None) -> list[str]:
+        try:
+            self._arcpy.env.workspace = str(workspace)
+            results = []
+            type_to_method = {
+                "FeatureClass": self._arcpy.ListFeatureClasses,
+                "Table": self._arcpy.ListTables,
+                "RasterDataset": self._arcpy.ListRasters,
+            }
+            types_to_list = [dataset_type] if dataset_type else list(type_to_method.keys())
+            for t in types_to_list:
+                list_func = type_to_method.get(t)
+                if list_func:
+                    items = list_func() or []
+                    results.extend(items)
+            if name_pattern:
+                import fnmatch
+                results = [r for r in results if fnmatch.fnmatch(r, name_pattern)]
+            return results
         except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
@@ -592,6 +622,74 @@ class ArcPyDataAccessor(IDataAccessor):
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="DATA_COUNT_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def get_fields(self, dataset_path) -> list[dict]:
+        try:
+            desc = self._arcpy.Describe(str(dataset_path))
+            return [
+                {"name": f.name, "type": f.type, "length": f.length}
+                for f in desc.fields
+            ]
+        except (self._arcpy.ExecuteError, OSError) as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="DATA_FIELDS_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def get_extent(self, dataset_path) -> dict:
+        try:
+            desc = self._arcpy.Describe(str(dataset_path))
+            ext = desc.extent
+            return {
+                "xmin": ext.XMin, "ymin": ext.YMin,
+                "xmax": ext.XMax, "ymax": ext.YMax,
+            }
+        except (self._arcpy.ExecuteError, OSError) as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="DATA_EXTENT_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def copy(self, src, dst) -> Path:
+        try:
+            self._arcpy.management.Copy(str(src), str(dst))
+            return Path(str(dst))
+        except (self._arcpy.ExecuteError, OSError) as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="DATA_COPY_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def delete(self, dataset_path) -> None:
+        try:
+            self._arcpy.management.Delete(str(dataset_path))
+        except (self._arcpy.ExecuteError, OSError) as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="DATA_DELETE_FAILED",
+                message=str(e),
+                arcpy_messages=self._arcpy.GetMessages()
+            )
+
+    def rename(self, dataset_path, new_name) -> Path:
+        try:
+            p = Path(str(dataset_path))
+            new_path = p.parent / new_name
+            self._arcpy.management.Rename(str(dataset_path), str(new_path))
+            return new_path
+        except (self._arcpy.ExecuteError, OSError) as e:
+            from arcgis_agent.exceptions import ArcGISError
+            raise ArcGISError(
+                code="DATA_RENAME_FAILED",
                 message=str(e),
                 arcpy_messages=self._arcpy.GetMessages()
             )

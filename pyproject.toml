@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "arcgis-agent"
@@ -18,8 +18,8 @@ dependencies = [
 arcgis-agent = "arcgis_agent.cli:main"
 arcgis-agent-mcp = "arcgis_agent.mcp_server:main"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/arcgis_agent"]
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [project.entry-points."arcgis_agent.commands"]
 workspace = "arcgis_agent.commands.workspace:register"

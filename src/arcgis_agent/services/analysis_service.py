@@ -55,8 +55,7 @@ class AnalysisService(BaseService):
             no_overwrite: Fail if output exists.
             output_table: Output table path. If None, auto-generate from input name.
         """
-        p_in = Path(input_fc)
-        if not p_in.exists():
+        if not self._data.exists(input_fc):
             return Result.error(code="FILE_NOT_FOUND",
                                 message=f"Input not found: {input_fc}")
 
@@ -69,9 +68,10 @@ class AnalysisService(BaseService):
 
         # Auto-generate output path if not provided
         if output_table is None:
+            p_in = Path(input_fc)
             output_table = str(p_in.parent / f"{p_in.stem}_stats")
 
-        if no_overwrite and Path(output_table).exists():
+        if no_overwrite and self._data.exists(output_table):
             return Result.error(code="FILE_EXISTS",
                                 message=f"Output exists: {output_table}")
 

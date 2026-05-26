@@ -187,6 +187,10 @@ class MockDataAccessor(IDataAccessor):
     def __init__(self):
         self.calls: list[tuple] = []
 
+    def exists(self, dataset_path: str) -> bool:
+        self.calls.append(("exists", dataset_path))
+        return True
+
     def list_datasets(self, workspace, dataset_type=None, name_pattern=None):
         self.calls.append(("list_datasets", str(workspace), dataset_type, name_pattern))
         return ["mock_feature_class", "mock_table"]

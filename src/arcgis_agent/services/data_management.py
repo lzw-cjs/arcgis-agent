@@ -17,16 +17,13 @@ class DataManagementService(BaseService):
     def copy(self, source: str, destination: str,
              no_overwrite: bool = False) -> Result:
         """Copy dataset to new location (MGMT-01)."""
-        src = Path(source)
-        dst = Path(destination)
-
-        if not src.exists():
+        if not self._data.exists(source):
             return Result.error(
                 code="FILE_NOT_FOUND",
                 message=f"Source not found: {source}",
             )
 
-        if no_overwrite and dst.exists():
+        if no_overwrite and self._data.exists(destination):
             return Result.error(
                 code="FILE_EXISTS",
                 message=f"Destination already exists: {destination}. "
@@ -34,51 +31,49 @@ class DataManagementService(BaseService):
             )
 
         try:
-            result_path = self._data.copy(src, dst)
+            result_path = self._data.copy(Path(source), Path(destination))
             return Result.ok(
-                data={"source": str(src), "destination": str(result_path)},
-                message=f"Copied {src.name} to {result_path}",
+                data={"source": source, "destination": str(result_path)},
+                message=f"Copied {Path(source).name} to {result_path}",
             )
         except Exception as e:
             return Result.from_exception(e)
 
     def delete(self, dataset_path: str) -> Result:
         """Delete dataset (MGMT-02)."""
-        p = Path(dataset_path)
-        if not p.exists():
+        if not self._data.exists(dataset_path):
             return Result.error(
                 code="FILE_NOT_FOUND",
                 message=f"Dataset not found: {dataset_path}",
             )
         try:
-            self._data.delete(p)
+            self._data.delete(Path(dataset_path))
             return Result.ok(
-                data={"path": str(p)},
-                message=f"Deleted: {p.name}",
+                data={"path": dataset_path},
+                message=f"Deleted: {Path(dataset_path).name}",
             )
         except Exception as e:
             return Result.from_exception(e)
 
     def rename(self, old_path: str, new_name: str) -> Result:
         """Rename dataset (MGMT-03)."""
-        p = Path(old_path)
-        if not p.exists():
+        if not self._data.exists(old_path):
             return Result.error(
                 code="FILE_NOT_FOUND",
                 message=f"Dataset not found: {old_path}",
             )
 
-        new_full = p.parent / new_name
-        if new_full.exists():
+        new_full = Path(old_path).parent / new_name
+        if self._data.exists(str(new_full)):
             return Result.error(
                 code="FILE_EXISTS",
                 message=f"Target name already exists: {new_name}",
             )
 
         try:
-            result_path = self._data.rename(p, new_name)
+            result_path = self._data.rename(Path(old_path), new_name)
             return Result.ok(
-                data={"old_path": str(p), "new_path": str(result_path)},
+                data={"old_path": old_path, "new_path": str(result_path)},
                 message=f"Renamed to {new_name}",
             )
         except Exception as e:
@@ -90,10 +85,7 @@ class DataManagementService(BaseService):
 
         Supported formats: shp, gdb, csv, geojson.
         """
-        src = Path(source)
-        dst = Path(destination)
-
-        if not src.exists():
+        if not self._data.exists(source):
             return Result.error(
                 code="FILE_NOT_FOUND",
                 message=f"Source not found: {source}",
@@ -107,7 +99,7 @@ class DataManagementService(BaseService):
                         f"Supported: {', '.join(sorted(valid_formats))}",
             )
 
-        if no_overwrite and dst.exists():
+        if no_overwrite and self._data.exists(destination):
             return Result.error(
                 code="FILE_EXISTS",
                 message=f"Destination already exists: {destination}. "
@@ -115,9 +107,9 @@ class DataManagementService(BaseService):
             )
 
         try:
-            result_path = self._data.convert(src, dst, output_format)
+            result_path = self._data.convert(Path(source), Path(destination), output_format)
             return Result.ok(
-                data={"source": str(src), "destination": str(result_path),
+                data={"source": source, "destination": str(result_path),
                        "format": output_format},
                 message=f"Converted to {output_format}: {result_path.name}",
             )

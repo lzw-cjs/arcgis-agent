@@ -145,8 +145,18 @@ class IDataAccessor(ABC):
     """Interface for data access and metadata operations."""
 
     @abstractmethod
+    def exists(self, dataset_path: str) -> bool:
+        """Check if a dataset exists (using arcpy catalog, not filesystem)."""
+        ...
+
+    @abstractmethod
     def list_feature_classes(self, workspace: Path) -> list[str]:
         """List all feature classes in a workspace."""
+        ...
+
+    @abstractmethod
+    def list_datasets(self, workspace, dataset_type=None, name_pattern=None) -> list[str]:
+        """List all datasets in a workspace with optional type/name filters."""
         ...
 
     @abstractmethod
@@ -163,4 +173,29 @@ class IDataAccessor(ABC):
     @abstractmethod
     def get_count(self, dataset_path) -> int:
         """Get record/feature count for a dataset."""
+        ...
+
+    @abstractmethod
+    def get_fields(self, dataset_path) -> list[dict]:
+        """Get field definitions for a dataset."""
+        ...
+
+    @abstractmethod
+    def get_extent(self, dataset_path) -> dict:
+        """Get spatial extent of a dataset."""
+        ...
+
+    @abstractmethod
+    def copy(self, src, dst) -> Path:
+        """Copy a dataset to a new location."""
+        ...
+
+    @abstractmethod
+    def delete(self, dataset_path) -> None:
+        """Delete a dataset."""
+        ...
+
+    @abstractmethod
+    def rename(self, dataset_path, new_name) -> Path:
+        """Rename a dataset."""
         ...

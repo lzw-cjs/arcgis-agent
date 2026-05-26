@@ -62,31 +62,29 @@ class DataDiscoveryService(BaseService):
 
     def describe(self, dataset_path: str) -> Result:
         """Describe dataset metadata (DISC-02)."""
-        p = Path(dataset_path)
-        if not p.exists():
+        if not self._data.exists(dataset_path):
             return Result.error(
                 code="FILE_NOT_FOUND",
                 message=f"Dataset not found: {dataset_path}",
             )
         try:
-            desc = self._data.describe(p)
+            desc = self._data.describe(Path(dataset_path))
             return Result.ok(
                 data=desc,
-                message=f"Dataset: {desc.get('name', p.name)}",
+                message=f"Dataset: {desc.get('name', Path(dataset_path).name)}",
             )
         except Exception as e:
             return Result.from_exception(e)
 
     def get_fields(self, dataset_path: str) -> Result:
         """List field definitions (DISC-03)."""
-        p = Path(dataset_path)
-        if not p.exists():
+        if not self._data.exists(dataset_path):
             return Result.error(
                 code="FILE_NOT_FOUND",
                 message=f"Dataset not found: {dataset_path}",
             )
         try:
-            fields = self._data.get_fields(p)
+            fields = self._data.get_fields(Path(dataset_path))
             return Result.ok(
                 data={"fields": fields, "count": len(fields)},
                 message=f"Found {len(fields)} field(s)",
@@ -96,14 +94,13 @@ class DataDiscoveryService(BaseService):
 
     def get_extent(self, dataset_path: str) -> Result:
         """Get spatial extent (DISC-04)."""
-        p = Path(dataset_path)
-        if not p.exists():
+        if not self._data.exists(dataset_path):
             return Result.error(
                 code="FILE_NOT_FOUND",
                 message=f"Dataset not found: {dataset_path}",
             )
         try:
-            extent = self._data.get_extent(p)
+            extent = self._data.get_extent(Path(dataset_path))
             return Result.ok(
                 data=extent,
                 message="Extent retrieved",
@@ -113,16 +110,15 @@ class DataDiscoveryService(BaseService):
 
     def get_count(self, dataset_path: str) -> Result:
         """Get record count (DISC-05)."""
-        p = Path(dataset_path)
-        if not p.exists():
+        if not self._data.exists(dataset_path):
             return Result.error(
                 code="FILE_NOT_FOUND",
                 message=f"Dataset not found: {dataset_path}",
             )
         try:
-            count = self._data.get_count(p)
+            count = self._data.get_count(Path(dataset_path))
             return Result.ok(
-                data={"count": count, "path": str(p)},
+                data={"count": count, "path": dataset_path},
                 message=f"{count} record(s)",
             )
         except Exception as e:
