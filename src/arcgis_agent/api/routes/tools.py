@@ -1,192 +1,437 @@
 """GIS tool REST API endpoints (Phase 7).
 
-Exposes 34 GIS operations as REST endpoints under /api/v1/tools/.
+Exposes 33 GIS operations as REST endpoints under /api/v1/tools/.
+All arcpy calls are serialized through _run_in_thread().
+Long-running operations return task_id for async polling.
 """
 from __future__ import annotations
 
+import asyncio
+from typing import Any
+
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/api/v1/tools", tags=["tools"])
+from arcgis_agent.api.dependencies import _run_in_thread
+from arcgis_agent.services.task_service import TaskStore
+
+router = APIRouter(prefix="/api/v1/tools", tags=["Tools"])
+
+# ── Long-running tool set ─────────────────────────────────────
+# These tools may take significant time (seconds to minutes) and
+# return a task_id + status instead of a synchronous result.
+_LONG_RUNNING: set[str] = {
+    "gp_buffer", "gp_clip", "gp_intersect", "gp_union", "gp_dissolve",
+    "gp_spatial_join", "gp_merge", "gp_project", "data_convert",
+    "map_export", "layout_export",
+}
 
 
-def _ok(data: dict | None = None, message: str = "OK") -> dict:
-    return {"success": True, "data": data, "message": message}
+async def _execute_long(task_id: str, fn, *args: Any, **kwargs: Any) -> None:
+    """Execute a long-running tool in background, updating TaskStore."""
+    store = TaskStore()
+    try:
+        store.update(task_id, status="running")
+        result = await _run_in_thread(lambda: fn(*args, **kwargs))
+        store.update(task_id, status="completed", result=result, progress=100.0)
+    except Exception as exc:
+        store.update(task_id, status="failed", error=str(exc))
 
 
-# ── Workspace ──
+# ── Workspace ──────────────────────────────────────────────────
 
 @router.post("/workspace/set")
-def workspace_set(path: str) -> dict:
-    return _ok({"path": path})
+async def workspace_set(body: dict):
+    def _execute():
+        from arcgis_agent.services.workspace_service import WorkspaceService
+        return WorkspaceService().set_workspace(body["path"])
+    return await _run_in_thread(_execute)
 
 
 @router.get("/workspace/get")
-def workspace_get() -> dict:
-    return _ok({"path": ""})
+async def workspace_get():
+    def _execute():
+        from arcgis_agent.services.workspace_service import WorkspaceService
+        return WorkspaceService().get_workspace()
+    return await _run_in_thread(_execute)
 
 
-# ── Project ──
+# ── Project ────────────────────────────────────────────────────
 
 @router.get("/project/info")
-def project_info() -> dict:
-    return _ok({"name": "current"})
+async def project_info(project_path: str | None = None):
+    def _execute():
+        from arcgis_agent.services.project_service import ProjectService
+        return ProjectService().info(project_path)
+    return await _run_in_thread(_execute)
 
 
-# ── Data ──
+# ── Data Discovery ─────────────────────────────────────────────
 
 @router.post("/data/list")
-def data_list(workspace: str | None = None) -> dict:
-    return _ok({"datasets": []})
+async def data_list(body: dict):
+    def _execute():
+        from arcgis_agent.services.data_discovery import DataDiscoveryService
+        return DataDiscoveryService().list_datasets(
+            workspace=body.get("workspace"),
+            dataset_type=body.get("dataset_type"),
+            name_pattern=body.get("name_pattern"),
+        )
+    return await _run_in_thread(_execute)
 
 
 @router.post("/data/describe")
-def data_describe(dataset: str) -> dict:
-    return _ok({"dataset": dataset})
+async def data_describe(body: dict):
+    def _execute():
+        from arcgis_agent.services.data_discovery import DataDiscoveryService
+        return DataDiscoveryService().describe(body["dataset_path"])
+    return await _run_in_thread(_execute)
 
 
 @router.post("/data/fields")
-def data_fields(dataset: str) -> dict:
-    return _ok({"fields": []})
+async def data_fields(body: dict):
+    def _execute():
+        from arcgis_agent.services.data_discovery import DataDiscoveryService
+        return DataDiscoveryService().get_fields(body["dataset_path"])
+    return await _run_in_thread(_execute)
 
 
 @router.post("/data/extent")
-def data_extent(dataset: str) -> dict:
-    return _ok({"extent": {}})
+async def data_extent(body: dict):
+    def _execute():
+        from arcgis_agent.services.data_discovery import DataDiscoveryService
+        return DataDiscoveryService().get_extent(body["dataset_path"])
+    return await _run_in_thread(_execute)
 
 
 @router.post("/data/count")
-def data_count(dataset: str) -> dict:
-    return _ok({"count": 0})
+async def data_count(body: dict):
+    def _execute():
+        from arcgis_agent.services.data_discovery import DataDiscoveryService
+        return DataDiscoveryService().get_count(body["dataset_path"])
+    return await _run_in_thread(_execute)
 
+
+# ── Data Management ────────────────────────────────────────────
 
 @router.post("/data/copy")
-def data_copy(src: str, dst: str) -> dict:
-    return _ok({"src": src, "dst": dst})
+async def data_copy(body: dict):
+    def _execute():
+        from arcgis_agent.services.data_management import DataManagementService
+        return DataManagementService().copy(body["src"], body["dst"])
+    return await _run_in_thread(_execute)
 
 
 @router.post("/data/delete")
-def data_delete(dataset: str) -> dict:
-    return _ok({"deleted": dataset})
+async def data_delete(body: dict):
+    def _execute():
+        from arcgis_agent.services.data_management import DataManagementService
+        return DataManagementService().delete(body["dataset_path"])
+    return await _run_in_thread(_execute)
 
 
 @router.post("/data/rename")
-def data_rename(dataset: str, new_name: str) -> dict:
-    return _ok({"old": dataset, "new": new_name})
+async def data_rename(body: dict):
+    def _execute():
+        from arcgis_agent.services.data_management import DataManagementService
+        return DataManagementService().rename(body["dataset_path"], body["new_name"])
+    return await _run_in_thread(_execute)
 
 
-@router.post("/data/convert")
-def data_convert(input_path: str, output_path: str, output_format: str) -> dict:
-    return _ok({"input": input_path, "output": output_path, "format": output_format})
+@router.post("/data/convert", status_code=201)
+async def data_convert(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("data_convert", body)
+    def _execute():
+        from arcgis_agent.services.data_management import DataManagementService
+        return DataManagementService().convert(
+            body["src"], body["dst"], body["output_format"],
+        )
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-# ── Geoprocessing ──
+# ── Geoprocessing ──────────────────────────────────────────────
 
 @router.post("/gp/select")
-def gp_select(input_fc: str, where_clause: str, output_fc: str | None = None) -> dict:
-    return _ok({"input": input_fc, "where": where_clause})
+async def gp_select(body: dict):
+    def _execute():
+        from arcgis_agent.services.geoprocessing import GeoprocessingService
+        return GeoprocessingService().select_by_attribute(
+            body["input_fc"], body["output_fc"], body["where_clause"],
+        )
+    return await _run_in_thread(_execute)
 
 
-@router.post("/gp/clip")
-def gp_clip(input_fc: str, clip_fc: str, output_fc: str | None = None) -> dict:
-    return _ok({"input": input_fc, "clip": clip_fc})
+@router.post("/gp/clip", status_code=201)
+async def gp_clip(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("gp_clip", body)
+    def _execute():
+        from arcgis_agent.services.geoprocessing import GeoprocessingService
+        return GeoprocessingService().clip(
+            body["input_fc"], body["clip_fc"], body["output_fc"],
+        )
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-@router.post("/gp/buffer")
-def gp_buffer(input_fc: str, distance: float, unit: str = "meters", output_fc: str | None = None) -> dict:
-    return _ok({"input": input_fc, "distance": distance, "unit": unit})
+@router.post("/gp/buffer", status_code=201)
+async def gp_buffer(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("gp_buffer", body)
+    def _execute():
+        from arcgis_agent.services.geoprocessing import GeoprocessingService
+        return GeoprocessingService().buffer(
+            body["input_fc"], body["output_fc"], body["distance"],
+            unit=body.get("unit", "Meters"),
+        )
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-@router.post("/gp/intersect")
-def gp_intersect(inputs: list[str], output_fc: str | None = None) -> dict:
-    return _ok({"inputs": inputs})
+@router.post("/gp/intersect", status_code=201)
+async def gp_intersect(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("gp_intersect", body)
+    def _execute():
+        from arcgis_agent.services.geoprocessing import GeoprocessingService
+        return GeoprocessingService().intersect(body["inputs"], body["output_fc"])
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-@router.post("/gp/union")
-def gp_union(inputs: list[str], output_fc: str | None = None) -> dict:
-    return _ok({"inputs": inputs})
+@router.post("/gp/union", status_code=201)
+async def gp_union(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("gp_union", body)
+    def _execute():
+        from arcgis_agent.services.geoprocessing import GeoprocessingService
+        return GeoprocessingService().union(body["inputs"], body["output_fc"])
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-@router.post("/gp/dissolve")
-def gp_dissolve(input_fc: str, dissolve_field: str, output_fc: str | None = None) -> dict:
-    return _ok({"input": input_fc, "field": dissolve_field})
+@router.post("/gp/dissolve", status_code=201)
+async def gp_dissolve(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("gp_dissolve", body)
+    def _execute():
+        from arcgis_agent.services.geoprocessing import GeoprocessingService
+        return GeoprocessingService().dissolve(
+            body["input_fc"], body["output_fc"], body["dissolve_field"],
+        )
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-@router.post("/gp/spatial-join")
-def gp_spatial_join(target_fc: str, join_fc: str, output_fc: str | None = None) -> dict:
-    return _ok({"target": target_fc, "join": join_fc})
+@router.post("/gp/spatial-join", status_code=201)
+async def gp_spatial_join(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("gp_spatial_join", body)
+    def _execute():
+        from arcgis_agent.services.geoprocessing import GeoprocessingService
+        return GeoprocessingService().spatial_join(
+            body["target_fc"], body["join_fc"], body["output_fc"],
+        )
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-@router.post("/gp/merge")
-def gp_merge(inputs: list[str], output_fc: str | None = None) -> dict:
-    return _ok({"inputs": inputs})
+@router.post("/gp/merge", status_code=201)
+async def gp_merge(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("gp_merge", body)
+    def _execute():
+        from arcgis_agent.services.geoprocessing import GeoprocessingService
+        return GeoprocessingService().merge(body["inputs"], body["output_fc"])
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-@router.post("/gp/project")
-def gp_project(input_fc: str, spatial_reference: str, output_fc: str | None = None) -> dict:
-    return _ok({"input": input_fc, "sr": spatial_reference})
+@router.post("/gp/project", status_code=201)
+async def gp_project(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("gp_project", body)
+    def _execute():
+        from arcgis_agent.services.geoprocessing import GeoprocessingService
+        return GeoprocessingService().project(
+            body["input_fc"], body["output_fc"], body["spatial_reference"],
+        )
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-# ── Map ──
+# ── Map ────────────────────────────────────────────────────────
 
 @router.post("/map/create")
-def map_create(map_name: str) -> dict:
-    return _ok({"map": map_name})
+async def map_create(body: dict):
+    def _execute():
+        from arcgis_agent.services.map_service import MapService
+        return MapService().create_map(
+            map_name=body["map_name"],
+            project_path=body.get("project_path"),
+        )
+    return await _run_in_thread(_execute)
 
 
 @router.post("/map/add-layer")
-def map_add_layer(layer_path: str, map_name: str | None = None) -> dict:
-    return _ok({"layer": layer_path})
+async def map_add_layer(body: dict):
+    def _execute():
+        from arcgis_agent.services.map_service import MapService
+        return MapService().add_layer(
+            project_path=body.get("project_path", ""),
+            map_name=body["map_name"],
+            data_path=body["layer_path"],
+        )
+    return await _run_in_thread(_execute)
 
 
 @router.post("/map/remove-layer")
-def map_remove_layer(layer_name: str) -> dict:
-    return _ok({"removed": layer_name})
+async def map_remove_layer(body: dict):
+    def _execute():
+        from arcgis_agent.services.map_service import MapService
+        return MapService().remove_layer(
+            project_path=body.get("project_path", ""),
+            map_name=body["map_name"],
+            layer_name=body.get("layer_name"),
+        )
+    return await _run_in_thread(_execute)
 
 
 @router.post("/map/list-layers")
-def map_list_layers(map_name: str | None = None) -> dict:
-    return _ok({"layers": []})
+async def map_list_layers(body: dict):
+    def _execute():
+        from arcgis_agent.services.map_service import MapService
+        return MapService().list_layers(
+            project_path=body.get("project_path", ""),
+            map_name=body["map_name"],
+        )
+    return await _run_in_thread(_execute)
 
 
 @router.post("/map/set-extent")
-def map_set_extent(zoom_to_layer: str) -> dict:
-    return _ok({"zoom_to": zoom_to_layer})
+async def map_set_extent(body: dict):
+    def _execute():
+        from arcgis_agent.services.map_service import MapService
+        return MapService().set_extent(
+            project_path=body.get("project_path", ""),
+            map_name=body["map_name"],
+            zoom_to_layer=body["zoom_to_layer"],
+        )
+    return await _run_in_thread(_execute)
 
 
-@router.post("/map/export")
-def map_export(output_path: str, format: str = "png", dpi: int = 300) -> dict:
-    return _ok({"output": output_path, "format": format, "dpi": dpi})
+@router.post("/map/export", status_code=201)
+async def map_export(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("map_export", body)
+    def _execute():
+        from arcgis_agent.services.map_service import MapService
+        return MapService().export_map(
+            project_path=body.get("project_path", ""),
+            map_name=body["map_name"],
+            output_path=body["output_path"],
+            format=body.get("format", "PNG"),
+            dpi=body.get("dpi", 150),
+        )
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
 @router.post("/map/symbolize")
-def map_symbolize(layer_name: str, symbology_config: dict) -> dict:
-    return _ok({"layer": layer_name})
+async def map_symbolize(body: dict):
+    def _execute():
+        from arcgis_agent.services.map_service import MapService
+        return MapService().symbolize_layer(
+            project_path=body.get("project_path", ""),
+            map_name=body["map_name"],
+            layer_name=body["layer_name"],
+            symbology_type=body.get("symbology_type", "simple"),
+            field=body.get("field"),
+            color=body.get("color"),
+            outline_color=body.get("outline_color"),
+            size=body.get("size", 8),
+            opacity=body.get("opacity", 100),
+            color_ramp=body.get("color_ramp"),
+            values=body.get("values"),
+            classification_method=body.get("classification_method", "NaturalBreaks"),
+            break_count=body.get("break_count", 5),
+        )
+    return await _run_in_thread(_execute)
 
 
 @router.post("/map/label")
-def map_label(layer_name: str, label_config: dict) -> dict:
-    return _ok({"layer": layer_name})
+async def map_label(body: dict):
+    def _execute():
+        from arcgis_agent.services.map_service import MapService
+        return MapService().set_label(
+            project_path=body.get("project_path", ""),
+            map_name=body["map_name"],
+            layer_name=body["layer_name"],
+            field=body["field"],
+            font_size=body.get("font_size", 10),
+            color=body.get("color", "0,0,0"),
+            bold=body.get("bold", False),
+        )
+    return await _run_in_thread(_execute)
 
 
-# ── Layout ──
+# ── Layout ─────────────────────────────────────────────────────
 
 @router.post("/layout/create")
-def layout_create(layout_name: str, page_width: float = 8.5, page_height: float = 11.0) -> dict:
-    return _ok({"layout": layout_name})
+async def layout_create(body: dict):
+    def _execute():
+        from arcgis_agent.services.layout_service import LayoutService
+        return LayoutService().create_layout(
+            project_path=body.get("project_path", ""),
+            layout_name=body["layout_name"],
+            page_size=body.get("page_size", "A4"),
+            orientation=body.get("orientation", "portrait"),
+        )
+    return await _run_in_thread(_execute)
 
 
 @router.post("/layout/add-element")
-def layout_add_element(element_type: str, element_config: dict) -> dict:
-    return _ok({"element": element_type})
+async def layout_add_element(body: dict):
+    def _execute():
+        from arcgis_agent.services.layout_service import LayoutService
+        return LayoutService().add_element(
+            project_path=body.get("project_path", ""),
+            layout_name=body["layout_name"],
+            element_type=body["element_type"],
+            position=body.get("position"),
+            params=body.get("params"),
+        )
+    return await _run_in_thread(_execute)
 
 
-@router.post("/layout/export")
-def layout_export(output_path: str, format: str = "png", dpi: int = 300) -> dict:
-    return _ok({"output": output_path, "format": format, "dpi": dpi})
+@router.post("/layout/export", status_code=201)
+async def layout_export(body: dict):
+    task_store = TaskStore()
+    task = task_store.create("layout_export", body)
+    def _execute():
+        from arcgis_agent.services.layout_service import LayoutService
+        return LayoutService().export_layout(
+            project_path=body.get("project_path", ""),
+            layout_name=body["layout_name"],
+            output_path=body["output_path"],
+            format=body.get("format", "PDF"),
+            dpi=body.get("dpi", 300),
+        )
+    asyncio.create_task(_execute_long(task.task_id, _execute))
+    return {"task_id": task.task_id, "status": task.status}
 
 
-# ── Analysis ──
+# ── Analysis ───────────────────────────────────────────────────
 
 @router.post("/analysis/summary-stats")
-def analysis_summary_stats(input_fc: str, statistics_fields: list[list[str]], output_table: str | None = None) -> dict:
-    return _ok({"input": input_fc, "fields": statistics_fields})
+async def analysis_summary_stats(body: dict):
+    def _execute():
+        from arcgis_agent.services.analysis_service import AnalysisService
+        return AnalysisService().summary_statistics(
+            input_fc=body["input_fc"],
+            field_spec=body["statistics_fields"],
+            case_field=body.get("case_field"),
+            output_table=body.get("output_table"),
+        )
+    return await _run_in_thread(_execute)

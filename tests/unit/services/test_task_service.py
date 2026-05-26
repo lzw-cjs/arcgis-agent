@@ -69,3 +69,22 @@ class TestTaskStore:
     def test_list_empty(self, task_store):
         tasks = task_store.list_recent()
         assert tasks == []
+
+    def test_update_error_field(self, task_store):
+        """update() supports the error field for failed tasks."""
+        task = task_store.create("failing_tool", {})
+        task_store.update(task.task_id, status="failed",
+                         error="arcpy error: invalid input")
+        updated = task_store.get(task.task_id)
+        assert updated is not None
+        assert updated.status == "failed"
+        assert updated.error == "arcpy error: invalid input"
+
+    def test_default_db_path_uses_config_dir(self):
+        """TaskStore() uses CONFIG_DIR/tasks.db as default path."""
+        from arcgis_agent.config import CONFIG_DIR
+        store = TaskStore()
+        expected = CONFIG_DIR / "tasks.db"
+        assert store._db_path == expected
+        # Cleanup
+        store._conn.close()

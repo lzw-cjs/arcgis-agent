@@ -1,85 +1,63 @@
 """Task management REST API endpoints (Phase 7).
 
-POST /api/v1/tasks — create a new task
-GET  /api/v1/tasks/{task_id} — get task status/result
-GET  /api/v1/tasks — list recent tasks
+POST /api/v1/tasks       — create a new task
+GET  /api/v1/tasks/{id}  — get task status/result
+GET  /api/v1/tasks       — list recent tasks
 """
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/v1", tags=["tasks"])
+from arcgis_agent.api.schemas.tasks import TaskCreate, TaskResult
+from arcgis_agent.services.task_service import Task, TaskStore
 
-# In-memory task store for the API layer
-_task_store = None
+router = APIRouter(prefix="/api/v1/tasks", tags=["Tasks"])
+_task_store: TaskStore | None = None
 
 
-def get_task_store():
-    """Lazy-import TaskStore singleton."""
+def get_task_store() -> TaskStore:
+    """Lazy-init TaskStore singleton."""
     global _task_store
     if _task_store is None:
-        from arcgis_agent.services.task_service import TaskStore
         _task_store = TaskStore()
     return _task_store
 
 
-class CreateTaskRequest(BaseModel):
-    tool_name: str
-    arguments: dict = {}
-
-
-class TaskResponse(BaseModel):
-    task_id: str
-    tool_name: str
-    status: str
-    arguments: dict
-    result: dict | None = None
-    progress: float = 0.0
-
-
-@router.post("/tasks", status_code=201)
-def create_task(req: CreateTaskRequest) -> dict:
-    store = get_task_store()
-    task = store.create(req.tool_name, req.arguments)
+def _task_to_result(task: Task) -> dict:
+    """Convert Task dataclass to a dict compatible with TaskResult schema."""
     return {
         "task_id": task.task_id,
         "tool_name": task.tool_name,
         "status": task.status,
-        "arguments": task.arguments,
+        "result": task.result,
+        "error": task.error,
         "progress": task.progress,
+        "created_at": task.created_at,
+        "updated_at": task.updated_at,
     }
 
 
-@router.get("/tasks/{task_id}")
-def get_task(task_id: str) -> dict:
+@router.post("", status_code=201)
+async def create_task(body: TaskCreate):
+    """Create a new async task."""
+    store = get_task_store()
+    task = store.create(body.tool_name, body.arguments)
+    return {"task_id": task.task_id, "status": task.status}
+
+
+@router.get("/{task_id}")
+async def get_task(task_id: str):
+    """Get task status and result by ID."""
     store = get_task_store()
     task = store.get(task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return {
-        "task_id": task.task_id,
-        "tool_name": task.tool_name,
-        "status": task.status,
-        "arguments": task.arguments,
-        "result": task.result,
-        "progress": task.progress,
-    }
+    return _task_to_result(task)
 
 
-@router.get("/tasks")
-def list_tasks(limit: int = 20) -> dict:
+@router.get("")
+async def list_tasks(limit: int = 20):
+    """List recent tasks, newest first."""
     store = get_task_store()
-    tasks = store.list_recent(limit=limit)
-    return {
-        "tasks": [
-            {
-                "task_id": t.task_id,
-                "tool_name": t.tool_name,
-                "status": t.status,
-                "progress": t.progress,
-            }
-            for t in tasks
-        ],
-        "count": len(tasks),
-    }
+    tasks = store.list_recent(limit)
+    return {"tasks": [_task_to_result(t) for t in tasks], "count": len(tasks)}
