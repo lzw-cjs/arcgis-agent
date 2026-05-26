@@ -1,1 +1,1 @@
-# Stub — Task 2 RED phase
+"""Pydantic schemas for the arcgis-agent REST API."""

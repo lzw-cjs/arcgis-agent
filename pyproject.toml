@@ -12,11 +12,16 @@ dependencies = [
     "mcp>=1.0",
     "rich",
     "pydantic>=2.11",
+    "fastapi>=0.135",
+    "uvicorn>=0.46",
+    "python-multipart>=0.0.20",
+    "sse-starlette>=3.3",
 ]
 
 [project.scripts]
 arcgis-agent = "arcgis_agent.cli:main"
 arcgis-agent-mcp = "arcgis_agent.mcp_server:main"
+arcgis-agent-web = "arcgis_agent.api.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
