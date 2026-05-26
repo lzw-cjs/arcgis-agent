@@ -633,24 +633,24 @@ export const useChatStore = create<ChatState>((set) => ({
 
 **If this table is empty:** N/A — 5 assumptions flagged for user confirmation.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **ArcGIS Maps SDK API Key 的获取和管理方式**
+1. **[RESOLVED]** **ArcGIS Maps SDK API Key 的获取和管理方式**
    - What we know: D-17 指定 API Key 方案；用户需在 ArcGIS Developer 创建 key
    - What's unclear: API Key 放哪里（.env 在前端？config 在后端？）；前端如何加载（Vite 环境变量？）；是否需要 OAuth 2.0 作为备选
    - Recommendation: API Key 通过 Vite 环境变量 `VITE_ARCGIS_API_KEY` 注入前端；在后端 config 中不存储（前端直接使用）
 
-2. **langchain-core 1.4.0 升级路径**
+2. **[RESOLVED]** **langchain-core 1.4.0 升级路径**
    - What we know: 当前安装 1.3.2，最新 1.4.0（0.1.8 版本差距）。AI-SPEC.md 指定 `>=1.3`
    - What's unclear: 1.4.0 是否有 breaking changes 影响 ChatOpenAI、BaseTool、或 trim_messages API
    - Recommendation: 锁定 `>=1.3,<2`（如 AI-SPEC 指定），在实现期间不急于升级到 1.4。如果 1.4 引入所需功能再升级
 
-3. **React 19 + ArcGIS Maps SDK 兼容性**
+3. **[RESOLVED]** **React 19 + ArcGIS Maps SDK 兼容性**
    - What we know: React 19.2.6 是最新稳定版；@arcgis/map-components-react 5.0.19 发布时 React 19 尚未广泛采用
    - What's unclear: 地图组件在 React 19 strict mode + concurrent features 下是否正常工作
    - Recommendation: 前端项目初始化后立即验证地图渲染。如果失败，计划 B：使用 @arcgis/core (vanilla JS) + `useRef` + `useEffect` 手写地图封装
 
-4. **SSE vs WebSocket 的最终选择**
+4. **[RESOLVED]** **SSE vs WebSocket 的最终选择**
    - What we know: D-13 指定 SSE 推送进度
    - What's unclear: SSE 是单向（server -> client），工具调用参数提交仍需要 POST 请求。是否需要双工通信（如取消长时操作）？
    - Recommendation: SSE 满足 Phase 7 需求。如果后期需要取消操作等双向功能，升级到 WebSocket

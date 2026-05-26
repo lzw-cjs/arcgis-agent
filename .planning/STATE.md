@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: milestone
-status: ready_to_plan
-last_updated: "2026-05-26T10:00:00.000Z"
+status: ready_to_execute
+last_updated: "2026-05-26T12:00:00.000Z"
 progress:
   total_phases: 9
   completed_phases: 5
-  total_plans: 24
+  total_plans: 32
   completed_plans: 25
   percent: 71
 ---
@@ -23,9 +23,9 @@ progress:
 ## 当前位置
 
 **阶段:** Phase 7 — Web UI, AI Integration & MCP E2E Testing
-**计划:** 0 plans（待规划）
-**状态:** Ready to plan
-**制品:** CONTEXT.md ✓, AI-SPEC.md ✓, RESEARCH.md ✓, VALIDATION.md ✓, UI-SPEC.md ✓
+**计划:** 8 plans (07-01 ~ 07-08)，已通过 checker 修订（3 blockers + 5 warnings 全部解决）
+**状态:** Plans created, ready to execute
+**制品:** CONTEXT.md ✓, AI-SPEC.md ✓, RESEARCH.md ✓, VALIDATION.md ✓, UI-SPEC.md ✓, PLANS ✓ (8 files)
 
 ## 进度
 
@@ -46,6 +46,7 @@ Phase 7 ░░░░░░░░░░  0%  Web UI, AI Integration & MCP E2E Tes
 
 | 日期 | 决策 | 理由 |
 |------|------|------|
+| 2026-05-26 | Phase 7 plans 修订: arcpy 线程安全 (asyncio.to_thread), 断言 >=31, Nyquist Wave 0, @arcgis/core 包引用 | checker 反馈 3 blockers + 5 warnings |
 | 2026-05-26 | Phase 7 UI 设计合约: Ant Design, 单面板聊天布局, 60/30/10 配色 | 前端阶段需要明确的视觉合约，避免执行期临时样式决策 |
 | 2026-05-26 | Phase 7 AI 框架: LangChain (`langchain-core` + `langchain-openai`) | 与项目 Adapter 模式一致，支持国内模型 OpenAI 兼容 API |
 | 2026-05-26 | DataDiscoveryService 跳过 super().__init__() 避免导入 arcpy | 只需 data adapter，不需 gp/map |
@@ -66,6 +67,8 @@ Phase 7 ░░░░░░░░░░  0%  Web UI, AI Integration & MCP E2E Tes
 
 - Phase 7 added: Web UI, AI Integration & MCP E2E Testing (2026-05-26)
 - Phase 7 UI-SPEC approved: Ant Design, 单面板聊天布局, 8-point 间距, 60/30/10 配色 (2026-05-26)
+- Phase 7 plans created: 8 plans across 4 waves (2026-05-26)
+- Phase 7 plans revised: checker feedback resolved (3 blockers + 5 warnings) (2026-05-26)
 
 ## 执行记录
 
@@ -94,7 +97,7 @@ Phase 7 ░░░░░░░░░░  0%  Web UI, AI Integration & MCP E2E Tes
 ## 会话连续性
 
 **上次会话:** 2026-05-26
-**停在:** Phase 7 UI-SPEC 已批准，RESEARCH.md + VALIDATION.md 已生成，待规划
+**停在:** Phase 7 plans 已创建并完成 checker 修订（3 blockers + 5 warnings 全部解决），待执行
 **恢复文件:** .planning/ROADMAP.md, .planning/phases/07-web-ui-ai-integration-mcp-e2e-testing/
 
 ---
