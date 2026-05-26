@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: milestone
 status: ready_to_execute
-last_updated: "2026-05-26T12:00:00.000Z"
+last_updated: "2026-05-26T10:35:22.696Z"
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 32
   completed_plans: 25
-  percent: 71
+  percent: 78
 ---
 
 # 项目状态
