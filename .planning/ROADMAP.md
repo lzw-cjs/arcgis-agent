@@ -11,6 +11,7 @@
 | Phase 4 | 地图生产 | MAP-01~11 | 待执行 |
 | Phase 5 | MCP Server | MCP-01~05 | 待执行 |
 | Phase 6 | 高级分析 (v1.1) | v2 requirements | 延后 |
+| Phase 7 | Web UI, AI Integration & MCP E2E Testing | D-01 ~ D-31 | 待规划 |
 
 ---
 
@@ -288,6 +289,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
                                → Phase 4
                     → Phase 5 (依赖 Phase 2-4 的 Service 层)
                                → Phase 6 (依赖 Phase 3 的分析基础)
+                    → Phase 7 (依赖 Phase 5 的 MCP Server 和 Service 层)
 ```
 
 - Phase 0 是所有阶段的前置条件
@@ -295,6 +297,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 - Phase 2/3/4 可部分并行（共享 Adapter 层）
 - Phase 5 在 Phase 2-4 完成后进行（复用 Service 层）
 - Phase 6 在 Phase 3 基础上扩展
+- Phase 7 在 Phase 5 基础上构建（复用 Service 层、Result 模型、arcpy 锁机制）
 
 ---
 
@@ -308,13 +311,21 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### Phase 7: Web UI, AI Integration & MCP E2E Testing
 
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 6
-**Plans:** 0 plans
+**Goal:** 在已有 CLI + MCP Server（31 个工具）之上，构建 FastAPI REST API、LangChain AI 集成、React Web UI 和 MCP E2E 测试四层完整交付，实现中文 GIS 智能助手。
+
+**Requirements**: D-01 ~ D-31 (CONTEXT.md)
+**Depends on:** Phase 5 (MCP Server + Service Layer)
+**Plans:** 8 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 7 to break down)
+- [ ] 07-01-PLAN.md — FastAPI app factory + DI + schemas (Wave 1)
+- [ ] 07-02-PLAN.md — 31 tool REST endpoints + TaskService + file upload (Wave 1)
+- [ ] 07-03-PLAN.md — LLMConfig + ILLMProvider ABC + providers + GIS tools (Wave 2)
+- [ ] 07-04-PLAN.md — ChatService agent loop + POST /api/v1/chat SSE endpoint (Wave 2)
+- [ ] 07-05-PLAN.md — Vite project init + TypeScript types + API client + Zustand store (Wave 3)
+- [ ] 07-06-PLAN.md — React UI components: ChatPanel, MessageBubble, MapPanel, ToolCallCard (Wave 3)
+- [ ] 07-07-PLAN.md — MCP E2E tests + Claude Code manual checklist + chat loop integration (Wave 4)
+- [ ] 07-08-PLAN.md — Unit tests + start-web.bat + .gitignore final wiring (Wave 4)
 
 ---
 
