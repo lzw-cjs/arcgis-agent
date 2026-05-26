@@ -7,7 +7,7 @@
 | Phase 0 | 项目搭建 & 环境准备 | ENV-01~03 | ✅ 完成 |
 | Phase 1 | CLI 基础框架 & 核心基础设施 | CLI-01~06, ADP-01~04, ENV-04 | ✅ 完成 |
 | Phase 2 | 数据操作（发现 + 管理） | PROJ-01~03, DISC-01~05, MGMT-01~04 | ✅ 完成 |
-| Phase 3 | 地理处理操作 | GEO-01~10 | 待执行 |
+| Phase 3 | 地理处理操作 | GEO-01~10 | 待验证 |
 | Phase 4 | 地图生产 | MAP-01~11 | 待执行 |
 | Phase 5 | MCP Server | MCP-01~05 | 待执行 |
 | Phase 6 | 高级分析 (v1.1) | v2 requirements | 延后 |
@@ -155,16 +155,16 @@
 
 ### 交付物
 
-- [ ] `data select <in> <out> --where` — 按属性选择
-- [ ] `data clip <in> <clip> <out>` — 裁剪
-- [ ] `data buffer <in> <out> --distance` — 缓冲区分析
-- [ ] `data intersect <inputs> <out>` — 叠加求交
-- [ ] `data union <inputs> <out>` — 叠加求并
-- [ ] `data dissolve <in> <out> --field` — 融合
-- [ ] `data spatial-join <target> <join> <out>` — 空间连接
-- [ ] `data merge <inputs> <out>` — 合并
-- [ ] `data project <in> <out> --sr` — 投影变换
-- [ ] `analysis summary-stats <in> --field --stat` — 汇总统计
+- [x] `data select <in> <out> --where` — 按属性选择
+- [x] `data clip <in> <clip> <out>` — 裁剪
+- [x] `data buffer <in> <out> --distance` — 缓冲区分析
+- [x] `data intersect <inputs> <out>` — 叠加求交
+- [x] `data union <inputs> <out>` — 叠加求并
+- [x] `data dissolve <in> <out> --field` — 融合
+- [x] `data spatial-join <target> <join> <out>` — 空间连接
+- [x] `data merge <inputs> <out>` — 合并
+- [x] `data project <in> <out> --sr` — 投影变换
+- [x] `analysis summary-stats <in> --field --stat` — 汇总统计
 
 ### 成功标准
 
@@ -183,12 +183,15 @@
 
 ### 计划
 
-**Plans:** 4 plans
+**Plans:** 7 plans (4 core + 3 gap closure)
 
 - [x] 03-01-PLAN.md — Adapter 层扩展 (IGeoProcessor + ArcPyGeoProcessor + MockGeoProcessor) + 共享 data_group
 - [x] 03-02-PLAN.md — GeoprocessingService (GEO-01~09) + AnalysisService (GEO-10)
 - [x] 03-03-PLAN.md — CLI 命令注册 (geoprocessing.py + analysis.py) + pyproject.toml 入口点
 - [x] 03-04-PLAN.md — 全模块单元测试 (test_geoprocessing.py + test_analysis.py)
+- [ ] 03-05-PLAN.md — CRS 坐标系一致性检查 (D-10/D-16, VERIFICATION Gap 1)
+- [ ] 03-06-PLAN.md — 许可证扩展管理 (CheckOutExtension, VERIFICATION Gap 2)
+- [ ] 03-07-PLAN.md — CLI 集成测试 (Click CliRunner, VERIFICATION Gap 3)
 
 ---
 
