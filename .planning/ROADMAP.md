@@ -327,7 +327,7 @@ Plans:
 - [x] 07-03-PLAN.md — LLMConfig + ILLMProvider ABC + providers + GIS tools (Wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 07-04-PLAN.md — ChatService agent loop + POST /api/v1/chat SSE endpoint (Wave 2)
+- [x] 07-04-PLAN.md — ChatService agent loop + POST /api/v1/chat SSE endpoint (Wave 2)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 07-05-PLAN.md — Vite project init + TypeScript types + API client + Zustand store (Wave 3)
