@@ -39,5 +39,20 @@ out.shp
 out_fc
 *.gdb/
 
+# Phase 7 - Web UI
+web/node_modules/
+web/dist/
+web/.env.local
+web/.env.*.local
+
+# Phase 7 - API
+*.db-journal
+*.db-wal
+tasks.db
+
+# ArcGIS
+*.apr_
+*.aprx.lock
+
 # Third-party tools
 .firecrawl/
