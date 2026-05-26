@@ -110,9 +110,10 @@ class MockMapDocument(IMapDocument):
                            str(layer_path)))
 
     def export_map(self, project_path: Path, map_name: str,
-                   output_path: Path, format: str, dpi: int) -> Path:
+                   output_path: Path, format: str, dpi: int,
+                   transparent: bool = False) -> Path:
         self.calls.append(("export_map", str(project_path), map_name,
-                           str(output_path), format, dpi))
+                           str(output_path), format, dpi, transparent))
         p = Path(output_path)
         if p.parent.exists():
             p.touch()

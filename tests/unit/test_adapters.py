@@ -52,7 +52,7 @@ def test_mock_map_export_records_call(mock_map):
                                   Path("/test/out.png"), "PNG", 300)
     assert len(mock_map.calls) == 1
     assert mock_map.calls[0] == ("export_map", str(Path("/test/aprx")), "Map1",
-                                  str(Path("/test/out.png")), "PNG", 300)
+                                  str(Path("/test/out.png")), "PNG", 300, False)
     assert isinstance(result, Path)
 
 

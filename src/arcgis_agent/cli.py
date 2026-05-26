@@ -29,8 +29,6 @@ def cli(ctx, output_json, verbose, quiet):
     ctx.obj["quiet"] = quiet
     from arcgis_agent.logging_config import setup_logging
     setup_logging(verbose=verbose, quiet=quiet)
-    from arcgis_agent.plugins import load_plugins
-    load_plugins(cli)
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
 
@@ -59,3 +57,7 @@ def main():
             sys.exit(1)
         else:
             raise
+
+
+from arcgis_agent.plugins import load_plugins
+load_plugins(cli)
