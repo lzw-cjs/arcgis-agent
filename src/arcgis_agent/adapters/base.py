@@ -87,6 +87,59 @@ class IMapDocument(ABC):
         """Export a map to image/PDF."""
         ...
 
+    @abstractmethod
+    def remove_layer(self, project_path: Path, map_name: str,
+                     layer_name: str, layer_index: int | None = None) -> None:
+        """Remove a layer from a map by name (preferred) or index (fallback)."""
+        ...
+
+    @abstractmethod
+    def list_layers(self, project_path: Path, map_name: str) -> list[dict]:
+        """List layers in a map. Each dict: {name, datasource, feature_count}."""
+        ...
+
+    @abstractmethod
+    def set_extent(self, project_path: Path, map_name: str,
+                   zoom_to_layer: str) -> None:
+        """Set map extent by zooming to a specified layer."""
+        ...
+
+    @abstractmethod
+    def symbolize_layer(self, project_path: Path, map_name: str,
+                        layer_name: str, symbology_config: dict) -> None:
+        """Apply symbology to a layer (Simple, UniqueValues, or GraduatedColors)."""
+        ...
+
+    @abstractmethod
+    def set_label(self, project_path: Path, map_name: str,
+                  layer_name: str, label_config: dict) -> None:
+        """Set labeling on a layer with field expression and style."""
+        ...
+
+
+class ILayoutDocument(ABC):
+    """Interface for ArcGIS Pro layout operations (MAP-09 through MAP-11)."""
+
+    @abstractmethod
+    def create_layout(self, project_path: Path, layout_name: str,
+                      page_width: float, page_height: float,
+                      page_units: str) -> Path:
+        """Create a new layout with specified page dimensions (MAP-09)."""
+        ...
+
+    @abstractmethod
+    def add_element(self, project_path: Path, layout_name: str,
+                    element_type: str, element_config: dict) -> None:
+        """Add an element to a layout (text, legend, scale-bar, north-arrow, map-frame, image)."""
+        ...
+
+    @abstractmethod
+    def export_layout(self, project_path: Path, layout_name: str,
+                      output_path: Path, format: str, dpi: int,
+                      **kwargs) -> Path:
+        """Export a layout to PNG or PDF (MAP-11)."""
+        ...
+
 
 class IDataAccessor(ABC):
     """Interface for data access and metadata operations."""
