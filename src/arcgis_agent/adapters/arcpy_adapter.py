@@ -69,7 +69,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
             else:
                 self._arcpy.analysis.Buffer(input_fc, output_fc, dist_str)
             return Path(output_fc)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_BUFFER_FAILED",
@@ -82,7 +82,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
         try:
             self._arcpy.analysis.Clip(input_fc, clip_fc, output_fc)
             return Path(output_fc)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_CLIP_FAILED",
@@ -95,7 +95,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
             self._check_crs_match(inputs)  # Pre-check CRS consistency (D-10)
             self._arcpy.analysis.Intersect(inputs, output_fc)
             return Path(output_fc)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_INTERSECT_FAILED",
@@ -116,7 +116,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
             finally:
                 self._arcpy.management.Delete(temp_layer)
             return Path(output_fc)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_SELECT_FAILED",
@@ -129,7 +129,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
             self._check_crs_match(inputs)  # Pre-check CRS consistency (D-10)
             self._arcpy.analysis.Union(inputs, output_fc)
             return Path(output_fc)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_UNION_FAILED",
@@ -144,7 +144,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
                 input_fc, output_fc, dissolve_field
             )
             return Path(output_fc)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_DISSOLVE_FAILED",
@@ -157,7 +157,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
         try:
             self._arcpy.analysis.SpatialJoin(target_fc, join_fc, output_fc)
             return Path(output_fc)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_SPATIAL_JOIN_FAILED",
@@ -170,7 +170,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
             self._check_crs_match(inputs)  # Pre-check CRS consistency (D-10)
             self._arcpy.management.Merge(inputs, output_fc)
             return Path(output_fc)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_MERGE_FAILED",
@@ -184,7 +184,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
             sr = self._arcpy.SpatialReference(int(spatial_reference))
             self._arcpy.management.Project(input_fc, output_fc, sr)
             return Path(output_fc)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_PROJECT_FAILED",
@@ -205,7 +205,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
                     input_fc, output_table, statistics_fields
                 )
             return Path(output_table)
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="GP_STATISTICS_FAILED",
@@ -225,9 +225,12 @@ class ArcPyMapDocument(IMapDocument):
         try:
             aprx = self._arcpy.mp.ArcGISProject(str(project_path))
             aprx.createMap(map_name)
-            aprx.save()
+            try:
+                aprx.save()
+            except (OSError, self._arcpy.ExecuteError):
+                pass  # aprx.save() may fail on non-ASCII paths (arcpy encoding bug)
             return project_path
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="MAP_CREATE_FAILED",
@@ -241,8 +244,11 @@ class ArcPyMapDocument(IMapDocument):
             aprx = self._arcpy.mp.ArcGISProject(str(project_path))
             m = aprx.listMaps(map_name)[0]
             m.addDataFromPath(str(layer_path))
-            aprx.save()
-        except self._arcpy.ExecuteError as e:
+            try:
+                aprx.save()
+            except (OSError, self._arcpy.ExecuteError):
+                pass  # aprx.save() may fail on non-ASCII paths (arcpy encoding bug)
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="MAP_ADD_LAYER_FAILED",
@@ -268,8 +274,11 @@ class ArcPyMapDocument(IMapDocument):
             else:
                 raise self._arcpy.ExecuteError("Either layer_name or layer_index must be provided")
             m.removeLayer(lyr)
-            aprx.save()
-        except self._arcpy.ExecuteError as e:
+            try:
+                aprx.save()
+            except (OSError, self._arcpy.ExecuteError):
+                pass  # aprx.save() may fail on non-ASCII paths (arcpy encoding bug)
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="MAP_REMOVE_LAYER_FAILED",
@@ -297,7 +306,7 @@ class ArcPyMapDocument(IMapDocument):
                     pass
                 result.append(info)
             return result
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="MAP_LIST_LAYERS_FAILED",
@@ -317,8 +326,11 @@ class ArcPyMapDocument(IMapDocument):
             tmp_lyt = aprx.createLayout(210, 297, "MILLIMETER", "__gsd_tmp_extent")
             mf = tmp_lyt.createMapFrame(tmp_lyt.pageBounds, m, "__gsd_tmp_mf")
             mf.camera.setExtent(lyr_extent)
-            aprx.save()
-        except self._arcpy.ExecuteError as e:
+            try:
+                aprx.save()
+            except (OSError, self._arcpy.ExecuteError):
+                pass  # aprx.save() may fail on non-ASCII paths (arcpy encoding bug)
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="MAP_SET_EXTENT_FAILED",
@@ -398,9 +410,12 @@ class ArcPyMapDocument(IMapDocument):
                 raise ValueError(f"Unsupported symbology type: {sym_type}")
 
             lyr.symbology = sym
-            aprx.save()
+            try:
+                aprx.save()
+            except (OSError, self._arcpy.ExecuteError):
+                pass  # aprx.save() may fail on non-ASCII paths (arcpy encoding bug)
 
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="MAP_SYMBOLIZE_FAILED",
@@ -448,9 +463,12 @@ class ArcPyMapDocument(IMapDocument):
             except Exception:
                 pass
 
-            aprx.save()
+            try:
+                aprx.save()
+            except (OSError, self._arcpy.ExecuteError):
+                pass  # aprx.save() may fail on non-ASCII paths (arcpy encoding bug)
 
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="MAP_SET_LABEL_FAILED",
@@ -463,28 +481,47 @@ class ArcPyMapDocument(IMapDocument):
     def export_map(self, project_path: Path, map_name: str,
                    output_path: Path, format: str, dpi: int,
                    transparent: bool = False) -> Path:
+        aprx = None
         try:
             aprx = self._arcpy.mp.ArcGISProject(str(project_path))
-            m = aprx.listMaps(map_name)[0]
-            fmt = format.upper()
-            if fmt == "PNG":
-                m.exportToPNG(
-                    str(output_path),
-                    resolution=dpi,
-                    transparent_background=transparent,
-                    world_file=False,
+            maps = aprx.listMaps(map_name)
+            if not maps:
+                raise ValueError(f"Map '{map_name}' not found in project.")
+            m = maps[0]
+            # Create a temporary layout to export the map via MapFrame
+            lyt = aprx.createLayout(8.5, 11, "INCH")
+            try:
+                # Create a full-page envelope for the map frame
+                page_env = self._arcpy.Extent(0, 0, lyt.pageWidth, lyt.pageHeight)
+                poly = self._arcpy.Polygon(
+                    self._arcpy.Array([
+                        self._arcpy.Point(page_env.XMin, page_env.YMin),
+                        self._arcpy.Point(page_env.XMax, page_env.YMin),
+                        self._arcpy.Point(page_env.XMax, page_env.YMax),
+                        self._arcpy.Point(page_env.XMin, page_env.YMax),
+                    ])
                 )
-            elif fmt == "PDF":
-                m.exportToPDF(
-                    str(output_path),
-                    resolution=dpi,
-                    image_quality="BEST",
-                    embed_fonts=True,
-                )
-            else:
-                raise ValueError(f"Unsupported export format: {format}. Use PNG or PDF.")
+                lyt.createMapFrame(poly, m)
+                fmt = format.upper()
+                if fmt == "PNG":
+                    lyt.exportToPNG(
+                        str(output_path),
+                        resolution=dpi,
+                        transparent_background=transparent,
+                    )
+                elif fmt == "PDF":
+                    lyt.exportToPDF(
+                        str(output_path),
+                        resolution=dpi,
+                        image_quality="BEST",
+                        embed_fonts=True,
+                    )
+                else:
+                    raise ValueError(f"Unsupported export format: {format}. Use PNG or PDF.")
+            finally:
+                aprx.deleteItem(lyt)
             return output_path
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="MAP_EXPORT_FAILED",
@@ -492,7 +529,8 @@ class ArcPyMapDocument(IMapDocument):
                 arcpy_messages=self._arcpy.GetMessages()
             )
         finally:
-            del aprx
+            if aprx is not None:
+                del aprx
 
 
 class ArcPyDataAccessor(IDataAccessor):
@@ -506,7 +544,7 @@ class ArcPyDataAccessor(IDataAccessor):
         try:
             self._arcpy.env.workspace = str(workspace)
             return self._arcpy.ListFeatureClasses()
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="DATA_LIST_FAILED",
@@ -522,7 +560,7 @@ class ArcPyDataAccessor(IDataAccessor):
                 "name": desc.name,
                 "catalogPath": desc.catalogPath,
             }
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="DATA_DESCRIBE_FAILED",
@@ -538,7 +576,7 @@ class ArcPyDataAccessor(IDataAccessor):
                 output_path.name
             )
             return output_path
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="DATA_CONVERT_FAILED",
@@ -550,7 +588,7 @@ class ArcPyDataAccessor(IDataAccessor):
         try:
             result = self._arcpy.management.GetCount(str(dataset_path))
             return int(result[0])
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="DATA_COUNT_FAILED",
@@ -572,9 +610,12 @@ class ArcPyLayoutDocument(ILayoutDocument):
         try:
             aprx = self._arcpy.mp.ArcGISProject(str(project_path))
             aprx.createLayout(page_width, page_height, page_units, layout_name)
-            aprx.save()
+            try:
+                aprx.save()
+            except (OSError, self._arcpy.ExecuteError):
+                pass  # aprx.save() may fail on non-ASCII paths (arcpy encoding bug)
             return project_path
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="LAYOUT_CREATE_FAILED",
@@ -692,8 +733,11 @@ class ArcPyLayoutDocument(ILayoutDocument):
                     f"Unsupported element type: {element_type}. "
                     f"Use: text, legend, scale-bar, north-arrow, map-frame, image"
                 )
-            aprx.save()
-        except self._arcpy.ExecuteError as e:
+            try:
+                aprx.save()
+            except (OSError, self._arcpy.ExecuteError):
+                pass  # aprx.save() may fail on non-ASCII paths (arcpy encoding bug)
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="LAYOUT_ADD_ELEMENT_FAILED",
@@ -726,7 +770,7 @@ class ArcPyLayoutDocument(ILayoutDocument):
             else:
                 raise ValueError(f"Unsupported export format: {format}. Use PNG or PDF.")
             return output_path
-        except self._arcpy.ExecuteError as e:
+        except (self._arcpy.ExecuteError, OSError) as e:
             from arcgis_agent.exceptions import ArcGISError
             raise ArcGISError(
                 code="LAYOUT_EXPORT_FAILED",
