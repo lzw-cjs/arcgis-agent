@@ -12,6 +12,35 @@ class ArcPyGeoProcessor(IGeoProcessor):
         import arcpy  # LAZY: inside constructor, not at module level
         self._arcpy = arcpy
 
+    def _check_crs_match(self, inputs: list[str]) -> None:
+        """Verify all inputs share the same spatial reference (D-10, D-16).
+
+        Raises UserError(code="CRS_MISMATCH") if inputs have different CRS.
+        This is a pre-check before overlay operations (intersect/union/merge).
+        When ArcPy is unavailable, ArcPyGeoProcessor cannot be constructed at all (D-16).
+        """
+        from arcgis_agent.exceptions import UserError
+
+        codes = {}
+        for fc in inputs:
+            desc = self._arcpy.Describe(fc)
+            sr = desc.spatialReference
+            codes[fc] = (sr.factoryCode, sr.name)
+
+        unique = set(code for code, _ in codes.values())
+        if len(unique) > 1:
+            details = ", ".join(
+                f"{fc} ({name}, EPSG:{code})"
+                for fc, (code, name) in codes.items()
+            )
+            raise UserError(
+                code="CRS_MISMATCH",
+                message=(
+                    f"Input layers have different coordinate systems: {details}. "
+                    f"Use 'data project' to reproject inputs to a common CRS first."
+                ),
+            )
+
     def buffer(self, input_fc: str, output_fc: str,
                distance: float, unit: str,
                dissolve_field: str | None = None) -> Path:
@@ -48,6 +77,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
 
     def intersect(self, inputs: list[str], output_fc: str) -> Path:
         try:
+            self._check_crs_match(inputs)  # Pre-check CRS consistency (D-10)
             self._arcpy.analysis.Intersect(inputs, output_fc)
             return Path(output_fc)
         except self._arcpy.ExecuteError as e:
@@ -81,6 +111,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
 
     def union(self, inputs: list[str], output_fc: str) -> Path:
         try:
+            self._check_crs_match(inputs)  # Pre-check CRS consistency (D-10)
             self._arcpy.analysis.Union(inputs, output_fc)
             return Path(output_fc)
         except self._arcpy.ExecuteError as e:
@@ -121,6 +152,7 @@ class ArcPyGeoProcessor(IGeoProcessor):
 
     def merge(self, inputs: list[str], output_fc: str) -> Path:
         try:
+            self._check_crs_match(inputs)  # Pre-check CRS consistency (D-10)
             self._arcpy.management.Merge(inputs, output_fc)
             return Path(output_fc)
         except self._arcpy.ExecuteError as e:
