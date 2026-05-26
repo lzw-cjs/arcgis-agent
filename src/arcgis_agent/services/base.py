@@ -1,5 +1,5 @@
 """Base service class with adapter dependency injection."""
-from arcgis_agent.adapters.base import IGeoProcessor, IMapDocument, IDataAccessor
+from arcgis_agent.adapters.base import IGeoProcessor, IMapDocument, IDataAccessor, ILayoutDocument
 
 
 class BaseService:
@@ -7,7 +7,7 @@ class BaseService:
 
     Accepts optional adapter instances for dependency injection.
     When not provided, lazily creates real ArcPy adapters.
-    Subclasses use self._gp, self._map, self._data to access adapters.
+    Subclasses use self._gp, self._map, self._data, self._layout to access adapters.
 
     Usage:
         # Production (lazy real adapters):
@@ -18,6 +18,7 @@ class BaseService:
             gp=MockGeoProcessor(),
             map_doc=MockMapDocument(),
             data=MockDataAccessor(),
+            layout_doc=MockLayoutDocument(),
         )
     """
 
@@ -26,10 +27,12 @@ class BaseService:
         gp: IGeoProcessor | None = None,
         map_doc: IMapDocument | None = None,
         data: IDataAccessor | None = None,
+        layout_doc: ILayoutDocument | None = None,
     ):
         self._gp = gp if gp is not None else self._make_gp()
         self._map = map_doc if map_doc is not None else self._make_map()
         self._data = data if data is not None else self._make_data()
+        self._layout = layout_doc if layout_doc is not None else self._make_layout()
 
     @staticmethod
     def _make_gp() -> IGeoProcessor:
@@ -45,3 +48,8 @@ class BaseService:
     def _make_data() -> IDataAccessor:
         from arcgis_agent.adapters.arcpy_adapter import ArcPyDataAccessor
         return ArcPyDataAccessor()
+
+    @staticmethod
+    def _make_layout() -> ILayoutDocument:
+        from arcgis_agent.adapters.arcpy_adapter import ArcPyLayoutDocument
+        return ArcPyLayoutDocument()
