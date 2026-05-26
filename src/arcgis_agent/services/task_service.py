@@ -13,6 +13,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from arcgis_agent.config import CONFIG_DIR
+
 
 @dataclass
 class Task:
@@ -23,6 +25,7 @@ class Task:
     status: str = "pending"
     arguments: dict[str, Any] = field(default_factory=dict)
     result: dict[str, Any] | None = None
+    error: str | None = None
     progress: float = 0.0
     created_at: str = ""
     updated_at: str = ""
@@ -33,8 +36,9 @@ class TaskStore:
 
     def __init__(self, db_path: str | Path | None = None) -> None:
         if db_path is None:
-            db_path = Path("tasks.db")
+            db_path = CONFIG_DIR / "tasks.db"
         self._db_path = Path(db_path)
+        self._db_path.parent.mkdir(parents=True, exist_ok=True)
         self._local = threading.local()
         self._init_db()
 
@@ -54,11 +58,17 @@ class TaskStore:
                 status TEXT NOT NULL DEFAULT 'pending',
                 arguments TEXT NOT NULL DEFAULT '{}',
                 result TEXT,
+                error TEXT,
                 progress REAL NOT NULL DEFAULT 0.0,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
         """)
+        # Migration: add error column if missing (for databases created before Phase 7)
+        try:
+            conn.execute("ALTER TABLE tasks ADD COLUMN error TEXT")
+        except sqlite3.OperationalError:
+            pass  # column already exists
         conn.commit()
 
     def create(self, tool_name: str, arguments: dict[str, Any]) -> Task:
@@ -96,6 +106,7 @@ class TaskStore:
         task_id: str,
         status: str | None = None,
         result: dict[str, Any] | None = None,
+        error: str | None = None,
         progress: float | None = None,
     ) -> None:
         """Update task fields. Only non-None values are updated."""
@@ -110,6 +121,9 @@ class TaskStore:
         if result is not None:
             updates.append("result = ?")
             params.append(json.dumps(result))
+        if error is not None:
+            updates.append("error = ?")
+            params.append(error)
         if progress is not None:
             updates.append("progress = ?")
             params.append(progress)
@@ -137,6 +151,7 @@ class TaskStore:
             status=row["status"],
             arguments=json.loads(row["arguments"]),
             result=json.loads(row["result"]) if row["result"] else None,
+            error=row["error"] if row["error"] else None,
             progress=row["progress"],
             created_at=row["created_at"],
             updated_at=row["updated_at"],

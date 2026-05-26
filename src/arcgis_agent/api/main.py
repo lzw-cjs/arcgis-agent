@@ -63,6 +63,11 @@ def create_app() -> FastAPI:
 
     app.router.lifespan_context = lifespan
 
+    # ── Task Routes ──────────────────────────────────────────
+
+    from arcgis_agent.api.routes.tasks import router as tasks_router
+    app.include_router(tasks_router)
+
     # ── Health Check ──────────────────────────────────────────
 
     @app.get("/api/v1/health")
