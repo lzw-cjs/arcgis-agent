@@ -68,6 +68,16 @@ def create_app() -> FastAPI:
     from arcgis_agent.api.routes.tasks import router as tasks_router
     app.include_router(tasks_router)
 
+    # ── Tool Routes ──────────────────────────────────────────
+
+    from arcgis_agent.api.routes.tools import router as tools_router
+    app.include_router(tools_router)
+
+    # ── Upload Routes ────────────────────────────────────────
+
+    from arcgis_agent.api.routes.upload import router as upload_router
+    app.include_router(upload_router)
+
     # ── Health Check ──────────────────────────────────────────
 
     @app.get("/api/v1/health")
