@@ -276,24 +276,26 @@ class TestGuardrails:
 
     def test_chinese_path_logs_warning(self, caplog):
         """Paths containing Chinese characters trigger WARNING log but don't block."""
-        # The guardrail is in the provider/agent loop, not directly in ChatService
-        # Testing that the ChatService doesn't crash with Chinese path data
-        provider = MockLLMProvider(responses={
-            "final": "处理完成",
-            "tool_log": [
-                {
-                    "name": "gp_buffer",
-                    "args": {"input_fc": "C:\\数据\\roads.shp", "distance": 100.0, "unit": "Meters"},
-                    "result": "OK",
-                    "success": True,
-                },
-            ],
-        })
-        service = ChatService(llm_provider=provider, store=ConversationStore())
-        with caplog.at_level(logging.WARNING, logger="arcgis_agent.services.chat_service"):
-            events = []
-            async for event in service.stream_chat("sid-cn", "buffer roads"):
-                events.append(event)
+        import asyncio
+        async def _run():
+            provider = MockLLMProvider(responses={
+                "final": "处理完成",
+                "tool_log": [
+                    {
+                        "name": "gp_buffer",
+                        "args": {"input_fc": "C:\\数据\\roads.shp", "distance": 100.0, "unit": "Meters"},
+                        "result": "OK",
+                        "success": True,
+                    },
+                ],
+            })
+            service = ChatService(llm_provider=provider, store=ConversationStore())
+            with caplog.at_level(logging.WARNING, logger="arcgis_agent.services.chat_service"):
+                events = []
+                async for event in service.stream_chat("sid-cn", "buffer roads"):
+                    events.append(event)
+            return events
+        events = asyncio.run(_run())
 
         # Should complete successfully (not block on Chinese path)
         assert any(e["event"] == "done" for e in events)
@@ -305,24 +307,28 @@ class TestGuardrails:
 
     def test_error_event_on_exception(self):
         """When an exception occurs, an error event is yielded."""
+        import asyncio
 
-        class BrokenProvider(ILLMProvider):
-            def chat(self, user_message, history=None):
-                return AIMessage(content="ok")
+        async def _run():
+            class BrokenProvider(ILLMProvider):
+                def chat(self, user_message, history=None):
+                    return AIMessage(content="ok")
 
-            def chat_with_tools(self, user_message, history=None, max_iterations=5):
-                raise RuntimeError("Simulated LLM failure")
+                def chat_with_tools(self, user_message, history=None, max_iterations=5):
+                    raise RuntimeError("Simulated LLM failure")
 
-            def register_tools(self, tools):
-                pass
+                def register_tools(self, tools):
+                    pass
 
-        service = ChatService(
-            llm_provider=BrokenProvider(),
-            store=ConversationStore(),
-        )
-        events = []
-        async for event in service.stream_chat("sid-crash", "hello"):
-            events.append(event)
+            service = ChatService(
+                llm_provider=BrokenProvider(),
+                store=ConversationStore(),
+            )
+            events = []
+            async for event in service.stream_chat("sid-crash", "hello"):
+                events.append(event)
+            return events
+        events = asyncio.run(_run())
 
         assert any(e["event"] == "error" for e in events), \
             "Must yield error event on provider exception"
@@ -336,21 +342,22 @@ class TestContextManagement:
     """Test: Context manager trims messages when over limit."""
 
     def test_manage_context_trim_long_history(self):
-        """When messages exceed 20, context is trimmed."""
+        """When messages exceed MAX_CONTEXT_TOKENS (80K), trimming occurs."""
         from langchain_core.messages import HumanMessage, SystemMessage
 
         service = make_service()
-        # Create 25 messages (way over 20 limit)
         messages = [SystemMessage(content="You are a GIS assistant.")]
-        for i in range(25):
-            messages.append(HumanMessage(content=f"Message {i}"))
+        # Generate ~100K tokens worth of messages to trigger trimming
+        huge = "The quick brown fox jumps over the lazy dog. " * 5000
+        for i in range(30):
+            messages.append(HumanMessage(content=huge))
 
         trimmed = service._manage_context(messages)
-        # Should be fewer than original
+        # System message is always preserved
+        assert any(isinstance(m, SystemMessage) for m in trimmed)
+        # With 100K+ tokens, trimming must reduce message count
         assert len(trimmed) < len(messages), \
             f"Expected trimmed ({len(trimmed)}) < original ({len(messages)})"
-        # Should keep system message
-        assert any(isinstance(m, SystemMessage) for m in trimmed)
 
     def test_manage_context_preserves_system_message(self):
         """System message is always preserved in trimmed context."""
