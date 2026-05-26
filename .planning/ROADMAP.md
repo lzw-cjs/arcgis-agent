@@ -306,6 +306,16 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 - **许可证:** 需要 ArcGIS Pro 有效许可证
 - **编码:** 强制 UTF-8，支持中文路径
 
+### Phase 7: Web UI, AI Integration & MCP E2E Testing
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 6
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 7 to break down)
+
 ---
 
 *创建时间: 2026-05-25*
