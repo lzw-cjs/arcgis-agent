@@ -330,8 +330,8 @@ Plans:
 - [x] 07-04-PLAN.md — ChatService agent loop + POST /api/v1/chat SSE endpoint (Wave 2)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 07-05-PLAN.md — Vite project init + TypeScript types + API client + Zustand store (Wave 3)
-- [ ] 07-07-PLAN.md — MCP E2E tests + Claude Code manual checklist + chat loop integration (Wave 4)
+- [x] 07-05-PLAN.md — Vite project init + TypeScript types + API client + Zustand store (Wave 3)
+- [x] 07-07-PLAN.md — MCP E2E tests + Claude Code manual checklist + chat loop integration (Wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 07-06-PLAN.md — React UI components: ChatPanel, MessageBubble, MapPanel, ToolCallCard (Wave 3)
