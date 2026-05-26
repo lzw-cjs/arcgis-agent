@@ -12,6 +12,21 @@ class ArcPyGeoProcessor(IGeoProcessor):
         import arcpy  # LAZY: inside constructor, not at module level
         self._arcpy = arcpy
 
+        # Check out required license extensions (ROADMAP: CheckOutExtension + try/finally)
+        self._checked_out_extensions = []
+        for ext_name in ["spatial"]:
+            try:
+                status = self._arcpy.CheckExtension(ext_name)
+                if status not in ("Available", "CheckedOut"):
+                    continue
+                if status == "CheckedOut":
+                    self._checked_out_extensions.append(ext_name)
+                    continue
+                self._arcpy.CheckOutExtension(ext_name)
+                self._checked_out_extensions.append(ext_name)
+            except Exception:
+                pass  # Non-fatal: individual tool calls will fail with clear arcpy errors if extension is truly needed
+
     def _check_crs_match(self, inputs: list[str]) -> None:
         """Verify all inputs share the same spatial reference (D-10, D-16).
 
