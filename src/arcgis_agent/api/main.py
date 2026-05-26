@@ -78,6 +78,11 @@ def create_app() -> FastAPI:
     from arcgis_agent.api.routes.upload import router as upload_router
     app.include_router(upload_router)
 
+    # ── Chat Routes ──────────────────────────────────────────
+
+    from arcgis_agent.api.routes.chat import router as chat_router
+    app.include_router(chat_router)
+
     # ── Health Check ──────────────────────────────────────────
 
     @app.get("/api/v1/health")
