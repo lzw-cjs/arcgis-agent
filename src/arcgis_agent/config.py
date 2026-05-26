@@ -1,9 +1,28 @@
 """Workspace configuration persistence."""
+from __future__ import annotations
+
 import json
 import logging
+from dataclasses import dataclass, field
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+
+# ── Phase 7: LLM Provider Configuration ──
+
+
+@dataclass
+class LLMProviderConfig:
+    """Configuration for an LLM provider (OpenAI-compatible API)."""
+
+    provider: str = "openai"
+    model: str = "gpt-4"
+    base_url: str = "https://api.openai.com/v1"
+    api_key: str = ""
+    temperature: float = 0.0
+    max_tokens: int = 4096
+    extra_headers: dict = field(default_factory=dict)
 
 CONFIG_DIR = Path.home() / ".arcgis-agent"
 CONFIG_FILE = CONFIG_DIR / "config.json"
