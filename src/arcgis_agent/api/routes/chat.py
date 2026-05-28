@@ -1,8 +1,8 @@
-"""Chat REST API endpoints (Phase 7, Plan 07-04).
+"""对话 REST API 端点
 
-POST /api/v1/chat — Chat with LLM (streaming SSE or non-streaming JSON)
-DELETE /api/v1/chat/{session_id} — Clear a conversation session
-GET  /api/v1/chat/providers — List available LLM providers
+POST /api/v1/chat ： Chat with LLM (streaming SSE or non-streaming JSON)
+DELETE /api/v1/chat/{session_id} ： Clear a conversation session
+GET  /api/v1/chat/providers ： List available LLM providers
 
 Key design decisions:
 - SSE streaming uses sse-starlette EventSourceResponse for proper event format
@@ -34,11 +34,10 @@ _llm_config: Optional[LLMConfig] = None
 
 
 def get_chat_service() -> ChatService:
-    """Return the global ChatService singleton, initializing on first call.
+    """返回全局 ChatService 单例，首次调用时初始化
 
-    Uses MockLLMProvider if no API key is configured (dev safety, D-25).
-    The LLM API key is loaded from environment variables only and is never
-    exposed to the frontend.
+    未配置 API 密钥时使用 MockLLMProvider（开发安全）
+    LLM API 密钥仅从环境变量加载，绝不暴露给前端
     """
     global _chat_service, _llm_config
     if _chat_service is None:
@@ -62,18 +61,18 @@ def get_chat_service() -> ChatService:
 
 @router.post("/chat")
 async def chat_endpoint(body: ChatRequest):
-    """Main chat endpoint.
+    """主对话端点
 
-    Returns SSE stream (text/event-stream) when stream=true (default).
-    Returns JSON when stream=false.
+    stream=true（默认）返回 SSE 流式响应 (text/event-stream)
+    stream=false 返回 JSON 格式
 
-    SSE event types:
-        token       — Text content chunks from the LLM response
-        tool_start  — Tool execution started (name, args)
-        tool_end    — Tool execution completed (name, success, result)
-        suggestions — Follow-up template suggestions (D-27)
-        done        — Stream complete (tool_calls count, message_id)
-        error       — An error occurred (code, message)
+    SSE 事件类型:
+        token       ： LLM 生成的文本内容块
+        tool_start  ： 工具开始执行（名称, 参数）
+        tool_end    ： 工具执行完成（名称, 成功/失败, 结果）
+        suggestions ： 后续建议模板
+        done        ： 流结束（工具调用计数, 消息ID）
+        error       ： 发生错误（错误码, 错误消息）
     """
     service = get_chat_service()
 
@@ -109,10 +108,9 @@ async def chat_endpoint(body: ChatRequest):
 
 @router.delete("/chat/{session_id}")
 async def clear_chat(session_id: str):
-    """Clear a conversation session and its full history.
+    """清除会话及其全部历史记录
 
-    Use this when the user wants to start a fresh conversation
-    without any prior context.
+    用于开启全新对话，不保留任何上下文
     """
     store = get_conversation_store()
     store.delete(session_id)
@@ -121,11 +119,10 @@ async def clear_chat(session_id: str):
 
 @router.get("/chat/providers")
 async def list_providers():
-    """List available LLM providers and their configuration status.
+    """查看可用 LLM 提供商及其配置状态
 
-    Returns which provider is the default, which are configured
-    (have API keys set), and the active models. The API key values
-    are NEVER included in the response (D-25).
+    返回默认提供商、已配置（已设置 API 密钥）的提供商及活跃模型
+    API 密钥值绝不包含在响应中
     """
     config = LLMConfig.from_env()
     providers_info = {}

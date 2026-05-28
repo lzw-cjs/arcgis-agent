@@ -1,0 +1,17 @@
+{
+  "mcp": {
+    "servers": {
+      "arcgis-agent": {
+        "command": "C:\\conda-envs\\arcgis-agent\\python.exe",
+        "args": [
+          "-m",
+          "arcgis_agent.mcp_server"
+        ],
+        "env": {
+          "PYTHONUTF8": "1"
+        },
+        "transport": "stdio"
+      }
+    }
+  }
+}

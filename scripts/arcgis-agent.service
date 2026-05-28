@@ -1,0 +1,16 @@
+[Unit]
+Description=ArcGIS Agent Web API
+After=network.target
+
+[Service]
+Type=simple
+User=arcgis-agent
+WorkingDirectory=/opt/arcgis-agent
+Environment=PYTHONUTF8=1
+Environment=APP_ENV=production
+ExecStart=/opt/arcgis-agent/venv/bin/uvicorn arcgis_agent.api.main:app --host 0.0.0.0 --port 8000 --workers 1
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

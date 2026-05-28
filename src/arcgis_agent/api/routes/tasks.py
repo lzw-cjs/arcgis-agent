@@ -1,8 +1,8 @@
-"""Task management REST API endpoints (Phase 7).
+"""异步任务管理 REST API 端点
 
-POST /api/v1/tasks       — create a new task
-GET  /api/v1/tasks/{id}  — get task status/result
-GET  /api/v1/tasks       — list recent tasks
+POST /api/v1/tasks       ： create a new task
+GET  /api/v1/tasks/{id}  ： get task status/result
+GET  /api/v1/tasks       ： list recent tasks
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def _task_to_result(task: Task) -> dict:
 
 @router.post("", status_code=201)
 async def create_task(body: TaskCreate):
-    """Create a new async task."""
+    """创建新的异步任务"""
     store = get_task_store()
     task = store.create(body.tool_name, body.arguments)
     return {"task_id": task.task_id, "status": task.status}
@@ -47,7 +47,7 @@ async def create_task(body: TaskCreate):
 
 @router.get("/{task_id}")
 async def get_task(task_id: str):
-    """Get task status and result by ID."""
+    """按 ID 查询任务状态和结果"""
     store = get_task_store()
     task = store.get(task_id)
     if task is None:
@@ -57,7 +57,7 @@ async def get_task(task_id: str):
 
 @router.get("")
 async def list_tasks(limit: int = 20):
-    """List recent tasks, newest first."""
+    """列出最近任务，按时间倒序"""
     store = get_task_store()
     tasks = store.list_recent(limit)
     return {"tasks": [_task_to_result(t) for t in tasks], "count": len(tasks)}

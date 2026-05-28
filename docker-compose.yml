@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  arcgis-agent:
+    build: .
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      - PYTHONUTF8=1
+      - APP_ENV=${APP_ENV:-production}
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - ${GIS_DATA_PATH:-./data}:/app/data:ro
+    restart: unless-stopped

@@ -6,7 +6,25 @@ build-backend = "setuptools.build_meta"
 name = "arcgis-agent"
 version = "0.1.0"
 description = "AI Agent CLI for ArcGIS Pro automation"
+readme = "README.md"
+license = "MIT"
 requires-python = ">=3.9"
+authors = [
+    {name = "arcgis-agent contributors"},
+]
+keywords = ["arcgis", "gis", "ai", "mcp", "agent", "geoprocessing", "cartography"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Utilities",
+]
 dependencies = [
     "click>=8.1",
     "mcp>=1.0",
@@ -20,10 +38,39 @@ dependencies = [
     "langchain-openai>=0.3.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/lzw-cjs/arcgis-agent"
+Documentation = "https://github.com/lzw-cjs/arcgis-agent#readme"
+Repository = "https://github.com/lzw-cjs/arcgis-agent"
+Issues = "https://github.com/lzw-cjs/arcgis-agent/issues"
+Changelog = "https://github.com/lzw-cjs/arcgis-agent/blob/main/CHANGELOG.md"
+
 [project.scripts]
 arcgis-agent = "arcgis_agent.cli:main"
 arcgis-agent-mcp = "arcgis_agent.mcp_server:main"
 arcgis-agent-web = "arcgis_agent.api.main:main"
+
+[project.optional-dependencies]
+web = [
+    "fastapi>=0.135",
+    "uvicorn>=0.46",
+    "python-multipart>=0.0.20",
+    "sse-starlette>=3.3",
+]
+mcp = [
+    "mcp>=1.0",
+]
+ai = [
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.3.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "httpx>=0.24",
+    "build>=0.10",
+    "twine>=4.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

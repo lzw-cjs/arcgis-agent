@@ -336,6 +336,25 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 - [x] 07-06-PLAN.md — React UI components: ChatPanel, MessageBubble, MapPanel, ToolCallCard (Wave 3)
 
+### Phase 8: 分发与部署
+
+**目标:** 让 arcgis-agent 可以通过 MCP Server、PyPI 包和 Web API 三种方式分享给他人使用。
+
+**需求:** DIST-01~03
+**依赖:** Phase 5 (MCP Server), Phase 7 (Web UI/API)
+
+**交付物:**
+
+- [x] `config/claude_desktop_config.example.json` + `docs/mcp-setup.md` + `scripts/check-env.py`
+- [x] 完善 `pyproject.toml` + `MANIFEST.in` + `LICENSE` + `CHANGELOG.md` + `README.md` + `.github/workflows/publish.yml`
+- [x] `Dockerfile` + `docker-compose.yml` + `.env.example` + `docs/deployment.md` + 服务脚本
+
+**计划:**
+
+- [x] 08-01-PLAN.md — MCP Server 分发配置
+- [x] 08-02-PLAN.md — PyPI 包分发
+- [x] 08-03-PLAN.md — Web API 部署
+
 ---
 
 *创建时间: 2026-05-25*

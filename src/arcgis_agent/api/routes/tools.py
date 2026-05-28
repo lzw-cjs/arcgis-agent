@@ -1,8 +1,8 @@
-"""GIS tool REST API endpoints (Phase 7).
+"""GIS 工具集 REST API 端点
 
-Exposes 33 GIS operations as REST endpoints under /api/v1/tools/.
-All arcpy calls are serialized through _run_in_thread().
-Long-running operations return task_id for async polling.
+在 /api/v1/tools/ 下提供 33 个 GIS 操作 REST 端点。
+所有 arcpy 调用通过 _run_in_thread() 序列化执行。
+长耗时操作返回 task_id 供异步轮询。
 """
 from __future__ import annotations
 
@@ -41,6 +41,7 @@ async def _execute_long(task_id: str, fn, *args: Any, **kwargs: Any) -> None:
 
 @router.post("/workspace/set")
 async def workspace_set(body: dict):
+    """设置工作空间路径 ： 所有后续 GIS 操作的默认数据目录"""
     def _execute():
         from arcgis_agent.services.workspace_service import WorkspaceService
         return WorkspaceService().set_workspace(body["path"])
@@ -49,6 +50,7 @@ async def workspace_set(body: dict):
 
 @router.get("/workspace/get")
 async def workspace_get():
+    """获取当前工作空间路径"""
     def _execute():
         from arcgis_agent.services.workspace_service import WorkspaceService
         return WorkspaceService().get_workspace()
@@ -59,6 +61,7 @@ async def workspace_get():
 
 @router.get("/project/info")
 async def project_info(project_path: str | None = None):
+    """获取 ArcGIS 项目信息（.aprx 文件路径）"""
     def _execute():
         from arcgis_agent.services.project_service import ProjectService
         return ProjectService().info(project_path)
@@ -69,6 +72,7 @@ async def project_info(project_path: str | None = None):
 
 @router.post("/data/list")
 async def data_list(body: dict):
+    """列出数据集 ： 支持按工作空间、类型、名称模式过滤"""
     def _execute():
         from arcgis_agent.services.data_discovery import DataDiscoveryService
         return DataDiscoveryService().list_datasets(
@@ -81,6 +85,7 @@ async def data_list(body: dict):
 
 @router.post("/data/describe")
 async def data_describe(body: dict):
+    """获取数据集元数据 ： 类型、名称、路径等"""
     def _execute():
         from arcgis_agent.services.data_discovery import DataDiscoveryService
         return DataDiscoveryService().describe(body["dataset_path"])
@@ -89,6 +94,7 @@ async def data_describe(body: dict):
 
 @router.post("/data/fields")
 async def data_fields(body: dict):
+    """获取数据集字段列表 ： 字段名、类型、长度"""
     def _execute():
         from arcgis_agent.services.data_discovery import DataDiscoveryService
         return DataDiscoveryService().get_fields(body["dataset_path"])
@@ -97,6 +103,7 @@ async def data_fields(body: dict):
 
 @router.post("/data/extent")
 async def data_extent(body: dict):
+    """获取数据集空间范围 ： X/Y 最小最大值"""
     def _execute():
         from arcgis_agent.services.data_discovery import DataDiscoveryService
         return DataDiscoveryService().get_extent(body["dataset_path"])
@@ -105,6 +112,7 @@ async def data_extent(body: dict):
 
 @router.post("/data/count")
 async def data_count(body: dict):
+    """获取要素数量"""
     def _execute():
         from arcgis_agent.services.data_discovery import DataDiscoveryService
         return DataDiscoveryService().get_count(body["dataset_path"])
@@ -115,6 +123,7 @@ async def data_count(body: dict):
 
 @router.post("/data/copy")
 async def data_copy(body: dict):
+    """复制数据集 ： src → dst"""
     def _execute():
         from arcgis_agent.services.data_management import DataManagementService
         return DataManagementService().copy(body["src"], body["dst"])
@@ -123,6 +132,7 @@ async def data_copy(body: dict):
 
 @router.post("/data/delete")
 async def data_delete(body: dict):
+    """删除数据集"""
     def _execute():
         from arcgis_agent.services.data_management import DataManagementService
         return DataManagementService().delete(body["dataset_path"])
@@ -131,6 +141,7 @@ async def data_delete(body: dict):
 
 @router.post("/data/rename")
 async def data_rename(body: dict):
+    """重命名数据集"""
     def _execute():
         from arcgis_agent.services.data_management import DataManagementService
         return DataManagementService().rename(body["dataset_path"], body["new_name"])
@@ -139,6 +150,7 @@ async def data_rename(body: dict):
 
 @router.post("/data/convert", status_code=201)
 async def data_convert(body: dict):
+    """转换数据格式 ： 长耗时，返回 task_id 供异步轮询"""
     task_store = TaskStore()
     task = task_store.create("data_convert", body)
     def _execute():
@@ -154,6 +166,7 @@ async def data_convert(body: dict):
 
 @router.post("/gp/select")
 async def gp_select(body: dict):
+    """按属性选择 ： 根据 SQL WHERE 子句筛选要素"""
     def _execute():
         from arcgis_agent.services.geoprocessing import GeoprocessingService
         return GeoprocessingService().select_by_attribute(
@@ -164,6 +177,7 @@ async def gp_select(body: dict):
 
 @router.post("/gp/clip", status_code=201)
 async def gp_clip(body: dict):
+    """裁剪 ： 用裁剪要素裁切输入要素（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("gp_clip", body)
     def _execute():
@@ -177,6 +191,7 @@ async def gp_clip(body: dict):
 
 @router.post("/gp/buffer", status_code=201)
 async def gp_buffer(body: dict):
+    """缓冲区分析 ： 在要素周围创建指定距离的缓冲区（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("gp_buffer", body)
     def _execute():
@@ -191,6 +206,7 @@ async def gp_buffer(body: dict):
 
 @router.post("/gp/intersect", status_code=201)
 async def gp_intersect(body: dict):
+    """相交分析 ： 计算多个要素类的几何交集（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("gp_intersect", body)
     def _execute():
@@ -202,6 +218,7 @@ async def gp_intersect(body: dict):
 
 @router.post("/gp/union", status_code=201)
 async def gp_union(body: dict):
+    """联合分析 ： 计算多个要素类的几何并集（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("gp_union", body)
     def _execute():
@@ -213,6 +230,7 @@ async def gp_union(body: dict):
 
 @router.post("/gp/dissolve", status_code=201)
 async def gp_dissolve(body: dict):
+    """融合 ： 按指定字段合并相邻要素（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("gp_dissolve", body)
     def _execute():
@@ -226,6 +244,7 @@ async def gp_dissolve(body: dict):
 
 @router.post("/gp/spatial-join", status_code=201)
 async def gp_spatial_join(body: dict):
+    """空间连接 ： 基于空间关系关联两个图层的属性（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("gp_spatial_join", body)
     def _execute():
@@ -239,6 +258,7 @@ async def gp_spatial_join(body: dict):
 
 @router.post("/gp/merge", status_code=201)
 async def gp_merge(body: dict):
+    """合并 ： 将多个同类型要素类合并为一个（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("gp_merge", body)
     def _execute():
@@ -250,6 +270,7 @@ async def gp_merge(body: dict):
 
 @router.post("/gp/project", status_code=201)
 async def gp_project(body: dict):
+    """投影转换 ： 将要素类转换到指定空间参考系（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("gp_project", body)
     def _execute():
@@ -265,6 +286,7 @@ async def gp_project(body: dict):
 
 @router.post("/map/create")
 async def map_create(body: dict):
+    """创建地图 ： 在项目中新建地图"""
     def _execute():
         from arcgis_agent.services.map_service import MapService
         return MapService().create_map(
@@ -276,6 +298,7 @@ async def map_create(body: dict):
 
 @router.post("/map/add-layer")
 async def map_add_layer(body: dict):
+    """添加图层 ： 将数据添加到地图"""
     def _execute():
         from arcgis_agent.services.map_service import MapService
         return MapService().add_layer(
@@ -288,6 +311,7 @@ async def map_add_layer(body: dict):
 
 @router.post("/map/remove-layer")
 async def map_remove_layer(body: dict):
+    """移除图层 ： 从地图中删除图层"""
     def _execute():
         from arcgis_agent.services.map_service import MapService
         return MapService().remove_layer(
@@ -300,6 +324,7 @@ async def map_remove_layer(body: dict):
 
 @router.post("/map/list-layers")
 async def map_list_layers(body: dict):
+    """列出图层 ： 获取地图中所有图层"""
     def _execute():
         from arcgis_agent.services.map_service import MapService
         return MapService().list_layers(
@@ -311,6 +336,7 @@ async def map_list_layers(body: dict):
 
 @router.post("/map/set-extent")
 async def map_set_extent(body: dict):
+    """设置范围 ： 缩放到指定图层"""
     def _execute():
         from arcgis_agent.services.map_service import MapService
         return MapService().set_extent(
@@ -323,6 +349,7 @@ async def map_set_extent(body: dict):
 
 @router.post("/map/export", status_code=201)
 async def map_export(body: dict):
+    """导出地图 ： 将地图输出为图像/PDF（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("map_export", body)
     def _execute():
@@ -340,6 +367,7 @@ async def map_export(body: dict):
 
 @router.post("/map/symbolize")
 async def map_symbolize(body: dict):
+    """图层符号化 ： 设置渲染方式（简单、唯一值、分级色彩）"""
     def _execute():
         from arcgis_agent.services.map_service import MapService
         return MapService().symbolize_layer(
@@ -362,6 +390,7 @@ async def map_symbolize(body: dict):
 
 @router.post("/map/label")
 async def map_label(body: dict):
+    """设置标注 ： 在地图图层上显示字段标注"""
     def _execute():
         from arcgis_agent.services.map_service import MapService
         return MapService().set_label(
@@ -380,6 +409,7 @@ async def map_label(body: dict):
 
 @router.post("/layout/create")
 async def layout_create(body: dict):
+    """创建布局 ： 在项目中新建打印布局（支持 A4/A3/Letter）"""
     def _execute():
         from arcgis_agent.services.layout_service import LayoutService
         return LayoutService().create_layout(
@@ -393,6 +423,7 @@ async def layout_create(body: dict):
 
 @router.post("/layout/add-element")
 async def layout_add_element(body: dict):
+    """添加布局元素 ： 文本、图例、比例尺、指北针、地图框、图片"""
     def _execute():
         from arcgis_agent.services.layout_service import LayoutService
         return LayoutService().add_element(
@@ -407,6 +438,7 @@ async def layout_add_element(body: dict):
 
 @router.post("/layout/export", status_code=201)
 async def layout_export(body: dict):
+    """导出布局 ： 将布局输出为 PDF/PNG 等格式（长耗时）"""
     task_store = TaskStore()
     task = task_store.create("layout_export", body)
     def _execute():
@@ -426,6 +458,7 @@ async def layout_export(body: dict):
 
 @router.post("/analysis/summary-stats")
 async def analysis_summary_stats(body: dict):
+    """汇总统计 ： 计算字段的统计信息（求和、均值、最大/最小值等）"""
     def _execute():
         from arcgis_agent.services.analysis_service import AnalysisService
         return AnalysisService().summary_statistics(

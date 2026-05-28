@@ -1,4 +1,4 @@
-"""Task status schemas for the task execution API."""
+"""任务状态 Schema"""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 
 class TaskStatus(str, Enum):
-    """Execution status of an async GIS task."""
+    """异步 GIS 任务执行状态"""
 
     PENDING = "pending"
     RUNNING = "running"
@@ -18,14 +18,14 @@ class TaskStatus(str, Enum):
 
 
 class TaskCreate(BaseModel):
-    """Request to create a new async GIS task."""
+    """创建新异步 GIS 任务的请求"""
 
     tool_name: str = Field(description="工具名称")
     arguments: dict = Field(default_factory=dict, description="工具参数")
 
 
 class TaskResult(BaseModel):
-    """Result of an async GIS task execution."""
+    """异步 GIS 任务执行结果"""
 
     task_id: str
     status: TaskStatus

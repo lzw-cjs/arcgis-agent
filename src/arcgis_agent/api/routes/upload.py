@@ -1,6 +1,6 @@
-"""File upload REST API endpoint (Phase 7).
+"""文件上传 REST API 端点
 
-POST /api/v1/upload — upload GIS data files (SHP, ZIP, GDB).
+POST /api/v1/upload ： upload GIS data files (SHP, ZIP, GDB).
 """
 from __future__ import annotations
 
@@ -17,9 +17,9 @@ UPLOAD_DIR = CONFIG_DIR / "uploads"
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    """Upload a GIS data file (.shp, .zip, .gdb).
+    """上传 GIS 数据文件 (.shp, .zip, .gdb)
 
-    Returns the saved file path. ZIP archives are automatically extracted.
+    返回保存的文件路径。ZIP 压缩包自动解压。
     """
     # Validate file extension
     allowed_ext = {".shp", ".shx", ".dbf", ".prj", ".cpg", ".zip"}

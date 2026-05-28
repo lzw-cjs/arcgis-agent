@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "arcgis-agent": {
+      "command": "arcgis-agent-mcp",
+      "env": {
+        "PYTHONUTF8": "1"
+      }
+    }
+  }
+}
